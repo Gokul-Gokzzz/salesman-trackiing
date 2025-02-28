@@ -1,0 +1,2 @@
+E:/xian/salesman-trackiing/android/app/.cxx/Debug/654y6o4n/x86/CMakeFiles/edit_cache.dir
+E:/xian/salesman-trackiing/android/app/.cxx/Debug/654y6o4n/x86/CMakeFiles/rebuild_cache.dir
