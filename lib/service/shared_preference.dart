@@ -1,29 +1,45 @@
+import 'dart:developer';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SharedPrefsHelper {
-  static const String _tokenKey = "user_token";
-  static const String _userDataKey = "user_data";
+class AuthStorage {
+  static const String _authTokenKey = 'auth_token';
+  static const String _userNameKey = 'user_name';
+  static const String _authKey = 'id';
 
-  static Future<void> saveLoginData(
-      String token, Map<String, dynamic> userData) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, token);
-    await prefs.setString(_userDataKey, userData.toString());
+  /// Save token and user details
+  static Future<void> saveAuthData({
+    required String token,
+    required String name,
+    required String id,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_authTokenKey, token);
+    await prefs.setString(_userNameKey, name);
+    await prefs.setString(_authKey, id);
+    log('✅ Token Stored Successfully');
   }
 
-  static Future<String?> getToken() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+  /// Load stored token and user details
+  static Future<Map<String, String?>> loadAuthData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString(_authTokenKey);
+    final name = prefs.getString(_userNameKey);
+    final id = prefs.getString(_authKey);
+    log('🔍 Loaded Token: $token');
+    log('🔍 Loaded User Name: $name');
+    log('🔍 Loaded User id: $id');
+    return {
+      'token': token,
+      'name': name,
+      'id': id,
+    };
   }
 
-  static Future<String?> getUserData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_userDataKey);
-  }
-
-  static Future<void> clearData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userDataKey);
+  /// Clear stored authentication data (Logout)
+  static Future<void> clearAuthData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_authTokenKey);
+    await prefs.remove(_userNameKey);
+    log('🚪 User Logged Out - Token Cleared');
   }
 }

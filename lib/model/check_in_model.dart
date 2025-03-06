@@ -36,6 +36,7 @@ class CheckInRequestModel {
 class Attendance {
   String? salesman;
   DateTime? checkInTime;
+  DateTime? checkOutTime;
   String? location;
   String? id;
   DateTime? createdAt;
@@ -45,6 +46,7 @@ class Attendance {
   Attendance({
     this.salesman,
     this.checkInTime,
+    this.checkOutTime,
     this.location,
     this.id,
     this.createdAt,
@@ -55,6 +57,9 @@ class Attendance {
   factory Attendance.fromJson(Map<String, dynamic> json) => Attendance(
         salesman: json["salesman"],
         checkInTime: json["checkInTime"] == null
+            ? null
+            : DateTime.parse(json["checkInTime"]),
+        checkOutTime: json["checkOutTime"] == null
             ? null
             : DateTime.parse(json["checkInTime"]),
         location: json["location"],
@@ -71,6 +76,7 @@ class Attendance {
   Map<String, dynamic> toJson() => {
         "salesman": salesman,
         "checkInTime": checkInTime?.toIso8601String(),
+        "checkOutTime": checkOutTime?.toIso8601String(),
         "location": location,
         "_id": id,
         "createdAt": createdAt?.toIso8601String(),

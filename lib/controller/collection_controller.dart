@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import '../model/collection_model.dart';
-import '../service/collection_service.dart';
+import 'package:salesman/model/collection_model.dart';
+import 'package:salesman/service/collection_service.dart';
 
 class CollectionProvider extends ChangeNotifier {
-  final CollectionService _collectionService = CollectionService();
-  GetCollectionModel? _collectionModel;
+  final CollectionService _service = CollectionService();
+  CollectionModel? _collectionModel;
   bool _isLoading = false;
 
-  GetCollectionModel? get collectionModel => _collectionModel;
+  CollectionModel? get collectionModel => _collectionModel;
   bool get isLoading => _isLoading;
 
-  Future<void> loadCollections() async {
+  Future<void> fetchCollections() async {
     _isLoading = true;
     notifyListeners();
 
-    _collectionModel = await _collectionService.fetchCollections();
+    _collectionModel = await _service.fetchCollections();
 
     _isLoading = false;
     notifyListeners();

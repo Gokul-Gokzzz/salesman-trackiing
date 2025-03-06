@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'package:salesman/controller/auth_conroller.dart';
 import 'package:salesman/view/app_base_screen/view/add_client_screen.dart';
 import 'package:salesman/view/app_base_screen/view/checkin_checkout_screen.dart';
+import 'package:salesman/view/app_base_screen/view/client_list_screen.dart';
 import 'package:salesman/view/app_base_screen/view/collections_screen.dart';
 import 'package:salesman/view/app_base_screen/view/expenses_screen.dart';
 import 'package:salesman/view/app_base_screen/view/notes_screen.dart';
@@ -13,6 +16,8 @@ class DashBoardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     List heading = [
       "Orders",
       "Meetings",
@@ -32,7 +37,7 @@ class DashBoardScreen extends StatelessWidget {
     List<Widget> pages = [
       const TakeOrderScreen(),
       const ScheduledMeetings(),
-      const AddClientScreen(),
+      const ClientListScreen(),
       const ExpensesScreen(),
       const CollectionsScreen(),
       const NotesScreen(),
@@ -112,6 +117,11 @@ class DashBoardScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
+                      IconButton(
+                          onPressed: () {
+                            authProvider.logout();
+                          },
+                          icon: Icon(Icons.logout)),
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(

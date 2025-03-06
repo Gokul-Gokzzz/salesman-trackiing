@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:salesman/controller/add_note_controller.dart';
+import 'package:salesman/controller/auth_conroller.dart';
 import 'package:salesman/controller/note_controller.dart';
+import 'package:salesman/model/add_note_model.dart';
 import 'package:salesman/model/note_model.dart';
 
 class NotesScreen extends StatefulWidget {
@@ -20,6 +23,10 @@ class _NotesScreenState extends State<NotesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    TextEditingController titleController = TextEditingController();
+    TextEditingController noteController = TextEditingController();
+    final addController = Provider.of<AuthProvider>(context, listen: false);
+
     return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
       body: Consumer<NoteController>(
@@ -110,6 +117,7 @@ class _NotesScreenState extends State<NotesScreen> {
                               SizedBox(
                                 height: 30,
                                 child: TextField(
+                                  controller: titleController,
                                   decoration: InputDecoration(
                                     hintText: "Title",
                                     border: OutlineInputBorder(
@@ -151,6 +159,7 @@ class _NotesScreenState extends State<NotesScreen> {
                               SizedBox(
                                 height: 58,
                                 child: TextField(
+                                  controller: noteController,
                                   maxLines: null,
                                   keyboardType: TextInputType.multiline,
                                   decoration: InputDecoration(
@@ -184,14 +193,63 @@ class _NotesScreenState extends State<NotesScreen> {
                                 height: 15,
                               ),
                               ElevatedButton(
-                                  onPressed: () {},
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0XFF094497),
-                                      elevation: 0),
-                                  child: const Text(
-                                    "Save",
-                                    style: TextStyle(color: Colors.white),
-                                  ))
+                                onPressed: () async {
+                                  String title = titleController.text.trim();
+                                  String note = noteController.text.trim();
+
+                                  if (title.isNotEmpty && note.isNotEmpty) {
+                                    try {
+                                      bool success =
+                                          await Provider.of<AddNoteController>(
+                                        context,
+                                        listen: false,
+                                      ).addNote(
+                                              note,
+                                              title,
+                                              addController
+                                                  .loginModel!.user!.id!);
+
+                                      if (success) {
+                                        // Refresh notes after adding
+                                        Provider.of<NoteController>(context,
+                                                listen: false)
+                                            .getNotes();
+                                        titleController.clear();
+                                        noteController.clear();
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  'Note added successfully!')),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content:
+                                                  Text('Failed to add note!')),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      debugPrint("Error adding note: $e");
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Title and Note cannot be empty!')),
+                                    );
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0XFF094497),
+                                  elevation: 0,
+                                ),
+                                child: const Text(
+                                  "Save",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -237,6 +295,7 @@ class NoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<NoteController>(context, listen: false);
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 5),
       padding: const EdgeInsets.all(10),
@@ -293,10 +352,15 @@ class NoteCard extends StatelessWidget {
                 width: 19,
               ),
               const SizedBox(width: 10),
-              SvgPicture.asset(
-                'assets/images/material-symbols_delete-outline.svg',
-                height: 22,
-                width: 22,
+              InkWell(
+                onTap: () {
+                  provider.deleteNote(note.id.toString());
+                },
+                child: SvgPicture.asset(
+                  'assets/images/material-symbols_delete-outline.svg',
+                  height: 22,
+                  width: 22,
+                ),
               ),
             ],
           ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'package:salesman/controller/add_client_form_controller.dart';
+
 class AddClientScreen extends StatefulWidget {
   const AddClientScreen({super.key});
 
@@ -8,9 +11,56 @@ class AddClientScreen extends StatefulWidget {
 }
 
 class _AddClientScreenState extends State<AddClientScreen> {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController companyNameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController contactController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController outstandingDueController =
+      TextEditingController();
+  final TextEditingController ordersPlacedController = TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    companyNameController.dispose();
+    contactController.dispose();
+    emailController.dispose();
+    addressController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _addClient() async {
+    final clientProvider =
+        Provider.of<AddClientProvider>(context, listen: false);
+
+    final clientData = {
+      "name": nameController.text,
+      "companyName": companyNameController.text,
+      "contact": contactController.text,
+      "email": emailController.text,
+      "address": addressController.text,
+      "outstandingDue": outstandingDueController.text,
+      "ordersPlaced": ordersPlacedController.text
+    };
+
+    await clientProvider.addClient(clientData);
+
+    if (clientProvider.message != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(clientProvider.message!)),
+      );
+
+      if (clientProvider.clientModel != null) {
+        Navigator.pop(context); // only pop if client added successfully.
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    final clientProvider = Provider.of<AddClientProvider>(context);
+    return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
       body: Column(
         children: [
@@ -66,7 +116,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                     const Text(
                       "Client Details",
                       style:
-                      TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                     Container(
                       height: 3,
@@ -102,7 +152,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
                             ),
                             SizedBox(
                               height: 30,
-                              child: TextField(
+                              child: TextFormField(
+                                controller: nameController,
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(2),
@@ -136,9 +187,6 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                            const SizedBox(
-                              height: 10,
                             ),
                             const SizedBox(
                               height: 10,
@@ -153,7 +201,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
                             ),
                             SizedBox(
                               height: 30,
-                              child: TextField(
+                              child: TextFormField(
+                                controller: companyNameController,
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(2),
@@ -191,11 +240,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
                             const SizedBox(
                               height: 10,
                             ),
-                            const SizedBox(
-                              height: 10,
-                            ),
                             const Text(
-                              "Contact number",
+                              "Email",
                               style: TextStyle(
                                   fontSize: 13, fontWeight: FontWeight.w400),
                             ),
@@ -204,7 +250,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
                             ),
                             SizedBox(
                               height: 30,
-                              child: TextField(
+                              child: TextFormField(
+                                controller: emailController,
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(2),
@@ -242,11 +289,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
                             const SizedBox(
                               height: 10,
                             ),
-                            const SizedBox(
-                              height: 10,
-                            ),
                             const Text(
-                              "Email address",
+                              "Contact Number",
                               style: TextStyle(
                                   fontSize: 13, fontWeight: FontWeight.w400),
                             ),
@@ -255,7 +299,112 @@ class _AddClientScreenState extends State<AddClientScreen> {
                             ),
                             SizedBox(
                               height: 30,
-                              child: TextField(
+                              child: TextFormField(
+                                controller: contactController,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(2),
+                                    borderSide: const BorderSide(
+                                      color: Color(0XFF999999),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(2),
+                                    borderSide: const BorderSide(
+                                      color: Color(0XFF999999),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(2),
+                                    borderSide: const BorderSide(
+                                      color: Color(0XFF999999),
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 8.0,
+                                    horizontal: 8.0,
+                                  ),
+                                  prefixIconConstraints: const BoxConstraints(
+                                    minWidth: 0,
+                                    minHeight: 0,
+                                  ),
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const Text(
+                              "Address",
+                              style: TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.w400),
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            SizedBox(
+                              height: 30,
+                              child: TextFormField(
+                                controller: addressController,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(2),
+                                    borderSide: const BorderSide(
+                                      color: Color(0XFF999999),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(2),
+                                    borderSide: const BorderSide(
+                                      color: Color(0XFF999999),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(2),
+                                    borderSide: const BorderSide(
+                                      color: Color(0XFF999999),
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 8.0,
+                                    horizontal: 8.0,
+                                  ),
+                                  prefixIconConstraints: const BoxConstraints(
+                                    minWidth: 0,
+                                    minHeight: 0,
+                                  ),
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const Text(
+                              "Outstanding Due",
+                              style: TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.w400),
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            SizedBox(
+                              height: 30,
+                              child: TextFormField(
+                                controller: outstandingDueController,
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(2),
@@ -294,7 +443,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                               height: 10,
                             ),
                             const Text(
-                              "Address:",
+                              "Orders Placed",
                               style: TextStyle(
                                   fontSize: 13, fontWeight: FontWeight.w400),
                             ),
@@ -303,7 +452,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
                             ),
                             SizedBox(
                               height: 75,
-                              child: TextField(
+                              child: TextFormField(
+                                controller: ordersPlacedController,
                                 maxLines: null,
                                 expands: true,
                                 textAlign: TextAlign.left,
@@ -330,9 +480,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                   ),
                                   contentPadding: const EdgeInsets.only(
                                     top:
-                                    5.0, // Adjust the vertical padding to start from the top
+                                        5.0, // Adjust the vertical padding to start from the top
                                     left:
-                                    8.0, // Adjust the horizontal padding to the left
+                                        8.0, // Adjust the horizontal padding to the left
                                     right: 0.0, // Remove padding from the right
                                     bottom: 0.0,
                                   ),
@@ -343,7 +493,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                 scrollPadding: const EdgeInsets.all(10.0),
                               ),
                             ),
-                            SizedBox(height: 10,),
+                            SizedBox(
+                              height: 10,
+                            ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
@@ -352,7 +504,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                   height: 38,
                                   decoration: BoxDecoration(
                                       border:
-                                      Border.all(color: Color(0XFF094497)),
+                                          Border.all(color: Color(0XFF094497)),
                                       borderRadius: BorderRadius.circular(20)),
                                   child: ElevatedButton(
                                       onPressed: () {},
@@ -368,26 +520,31 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                       )),
                                 ),
                                 ElevatedButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      _addClient();
+                                    },
                                     style: ElevatedButton.styleFrom(
                                         backgroundColor:
-                                        const Color(0XFF094497),
+                                            const Color(0XFF094497),
                                         elevation: 0),
-                                    child: const Text(
-                                      "Save Client",
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 10.14),
-                                    )),
+                                    child: clientProvider.isLoading
+                                        ? CircularProgressIndicator()
+                                        : Text(
+                                            "Save Client",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 10.14),
+                                          )),
                               ],
                             ),
                           ],
                         ),
                       ),
                     ),
-                    SizedBox(height: 20,)
-                    // ==============================================================================
+                    SizedBox(
+                      height: 20,
+                    )
                   ],
                 ),
               ),

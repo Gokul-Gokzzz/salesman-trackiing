@@ -8,13 +8,15 @@ class CollectionService {
   final String _baseUrl =
       'https://salesman-tracking-app.onrender.com/api/collections';
 
-  Future<GetCollectionModel?> fetchCollections() async {
+  Future<CollectionModel?> fetchCollections() async {
     try {
       Response response = await _dio.get(_baseUrl);
 
       if (response.statusCode == 200) {
-        return GetCollectionModel.fromJson(response.data);
+        log("Collection data fetched successfully.");
+        return CollectionModel.fromJson(response.data);
       } else {
+        log("Failed to fetch collections. Status Code: ${response.statusCode}");
         return null;
       }
     } catch (e) {

@@ -1,52 +1,155 @@
+import 'dart:developer';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:salesman/controller/add_client_form_controller.dart';
+import 'package:salesman/controller/add_client_meeting_details_controller.dart';
+import 'package:salesman/controller/field_staff_controller.dart';
+import 'package:salesman/model/add_client_meeting_details_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ClientMeetingDetails extends StatefulWidget {
-  const ClientMeetingDetails({super.key});
+class ClientMeetingDetailsScreen extends StatefulWidget {
+  const ClientMeetingDetailsScreen({super.key});
 
   @override
-  State<ClientMeetingDetails> createState() => _ClientMeetingDetailsState();
+  State<ClientMeetingDetailsScreen> createState() =>
+      _ClientMeetingDetailsScreenState();
 }
 
-class _ClientMeetingDetailsState extends State<ClientMeetingDetails> {
+class _ClientMeetingDetailsScreenState
+    extends State<ClientMeetingDetailsScreen> {
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _clientController = TextEditingController();
+  final TextEditingController _locationDetailsController =
+      TextEditingController();
+  final TextEditingController _agendaController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
+  DateTime? _selectedDateTime;
+  DateTime? _followUpReminder;
+  File? _selectedFile;
+
+  String? _selectedLocationType;
+  String? _selectedFieldStaff;
+  String? _selectedRepeatFrequency;
+
   @override
-  String? selectedValue = 'Option 1';
-  String? selectedMeetingLocation = 'On-site';
-  TimeOfDay? selectedTime; // Stores the selected time
-  String? selectedOption;
-
-  // Function to open the Time Picker
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: selectedTime ?? TimeOfDay.now(), // Default to current time
-    );
-
-    if (picked != null && picked != selectedTime) {
-      setState(() {
-        selectedTime = picked;
-      });
-    }
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<FieldStaffController>(context, listen: false).getFieldStaff();
+    });
   }
 
-  DateTime? selectedDate;
+  final List<String> locationTypes = ['On-Site', 'Virtual'];
+  final List<String> repeatFrequencies = ["daily", "weekly", "monthly"];
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  void _pickDateTime() async {
+    DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime.now(),
+      initialDate: DateTime.now(),
       firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      lastDate: DateTime(2101),
     );
-    if (picked != null && picked != selectedDate) {
+    if (pickedDate != null) {
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+      if (pickedTime != null) {
+        setState(() {
+          _selectedDateTime = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+        });
+      }
+    }
+  }
+
+  void _pickFollowUpReminder() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (pickedDate != null) {
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+      if (pickedTime != null) {
+        setState(() {
+          _followUpReminder = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+        });
+      }
+    }
+  }
+
+  void _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null) {
       setState(() {
-        selectedDate = picked;
+        _selectedFile = File(result.files.single.path!);
       });
     }
   }
 
-  bool isChecked = false;
-  bool isReminderChecked = false;
+  void _submitMeeting() async {
+    final meetingController =
+        Provider.of<AddClientMeetingDetailsController>(context, listen: false);
+
+    if (_titleController.text.isEmpty ||
+        _clientController.text.isEmpty ||
+        _selectedDateTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please fill all required fields")),
+      );
+      return;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    String? salesmanId =
+        prefs.getString('id'); // Retrieve ID from SharedPreferences
+
+    if (salesmanId == null || salesmanId.isEmpty) {
+      log("❌ Salesman ID is null or empty!");
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Salesman ID not found")));
+      return;
+    }
+
+    log("✅ Salesman ID: $salesmanId");
+
+    AddMeeting newMeeting = AddMeeting(
+      salesman: salesmanId,
+      title: _titleController.text,
+      client: _clientController.text,
+      dateTime: _selectedDateTime!,
+      locationType: _selectedLocationType ?? '',
+      locationDetails: _locationDetailsController.text,
+      fieldStaff: _selectedFieldStaff ?? '',
+      agenda: _agendaController.text,
+      notes: _notesController.text,
+      repeatFrequency: _selectedRepeatFrequency ?? '',
+      followUpReminder: _followUpReminder,
+      attachment: _selectedFile?.path,
+    );
+
+    meetingController.createMeeting(newMeeting, context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,18 +167,17 @@ class _ClientMeetingDetailsState extends State<ClientMeetingDetails> {
                     bottomRight: Radius.circular(30),
                   ),
                   image: DecorationImage(
-                    image: AssetImage("assets/images/expense_bg.png"),
+                    image: AssetImage("assets/images/collection_bg.png"),
                     fit: BoxFit.fill,
                   ),
                 ),
                 child: const Center(
                   child: Text(
-                    textAlign: TextAlign.center,
-                    "Client Meeting details",
+                    "Client Meeting Details",
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 35,
                       fontWeight: FontWeight.w600,
-                      color: Color(0XFFFFFFFF),
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -94,930 +196,142 @@ class _ClientMeetingDetailsState extends State<ClientMeetingDetails> {
           ),
           Expanded(
             child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 13.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: double.maxFinite,
-                      decoration: BoxDecoration(
-                          color: const Color(0XFFFFFFFF),
-                          borderRadius: BorderRadius.circular(7)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 16.0, horizontal: 18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Enter Meeting title",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            SizedBox(
-                              height: 30,
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                    horizontal: 8.0,
-                                  ),
-                                  prefixIconConstraints: const BoxConstraints(
-                                    minWidth: 0,
-                                    minHeight: 0,
-                                  ),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                          ],
+              padding: const EdgeInsets.symmetric(horizontal: 13.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+                  TextField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                          labelText: "Meeting Title",
+                          border: OutlineInputBorder())),
+                  const SizedBox(height: 15),
+                  TextField(
+                      controller: _clientController,
+                      decoration: const InputDecoration(
+                          labelText: "Client Name",
+                          border: OutlineInputBorder())),
+                  const SizedBox(height: 15),
+                  GestureDetector(
+                    onTap: _pickDateTime,
+                    child: AbsorbPointer(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: _selectedDateTime == null
+                              ? "Select Date & Time"
+                              : DateFormat('yyyy-MM-dd – kk:mm')
+                                  .format(_selectedDateTime!),
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 30.75,
+                  ),
+                  const SizedBox(height: 15),
+                  DropdownButtonFormField(
+                    value: _selectedLocationType,
+                    items: locationTypes
+                        .map((type) =>
+                            DropdownMenuItem(value: type, child: Text(type)))
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => _selectedLocationType = value),
+                    decoration: const InputDecoration(
+                        labelText: "Location Type",
+                        border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                      controller: _locationDetailsController,
+                      decoration: const InputDecoration(
+                          labelText: "Location Details",
+                          border: OutlineInputBorder())),
+                  const SizedBox(height: 15),
+                  const SizedBox(height: 15),
+                  Consumer<FieldStaffController>(
+                    builder: (context, controller, child) {
+                      if (controller.isLoading) {
+                        return const CircularProgressIndicator();
+                      }
+
+                      return DropdownButtonFormField<String>(
+                        value: _selectedFieldStaff,
+                        items: controller.staffList
+                            .map((staff) => DropdownMenuItem(
+                                  value: staff.name,
+                                  child: Text(staff.name),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedFieldStaff = value;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          labelText: "Field Staff",
+                          border: OutlineInputBorder(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                      controller: _agendaController,
+                      decoration: const InputDecoration(
+                          labelText: "Agenda", border: OutlineInputBorder())),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _notesController,
+                    decoration: const InputDecoration(
+                      labelText: "Notes",
+                      border: OutlineInputBorder(),
                     ),
-                    const Text(
-                      "Client Details",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 15),
+                  DropdownButtonFormField(
+                    value: _selectedRepeatFrequency,
+                    items: repeatFrequencies
+                        .map((freq) =>
+                            DropdownMenuItem(value: freq, child: Text(freq)))
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => _selectedRepeatFrequency = value),
+                    decoration: const InputDecoration(
+                      labelText: "Repeat Frequency",
+                      border: OutlineInputBorder(),
                     ),
-                    Container(
-                      height: 3,
-                      width: 66.02,
-                      decoration: BoxDecoration(
-                          color: const Color(0XFF094497),
-                          borderRadius: BorderRadius.circular(20)),
-                    ),
-                    const SizedBox(
-                      height: 30.75,
-                    ),
-                    Container(
-                      width: double.maxFinite,
-                      decoration: BoxDecoration(
-                          color: const Color(0XFFFFFFFF),
-                          borderRadius: BorderRadius.circular(7)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 16.0, horizontal: 18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Client Name",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            SizedBox(
-                              height: 30,
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                    horizontal: 8.0,
-                                  ),
-                                  prefixIconConstraints: const BoxConstraints(
-                                    minWidth: 0,
-                                    minHeight: 0,
-                                  ),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Company Name",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            SizedBox(
-                              height: 30,
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                    horizontal: 8.0,
-                                  ),
-                                  prefixIconConstraints: const BoxConstraints(
-                                    minWidth: 0,
-                                    minHeight: 0,
-                                  ),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Contact number",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            SizedBox(
-                              height: 30,
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                    horizontal: 8.0,
-                                  ),
-                                  prefixIconConstraints: const BoxConstraints(
-                                    minWidth: 0,
-                                    minHeight: 0,
-                                  ),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Email address",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            SizedBox(
-                              height: 30,
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                    horizontal: 8.0,
-                                  ),
-                                  prefixIconConstraints: const BoxConstraints(
-                                    minWidth: 0,
-                                    minHeight: 0,
-                                  ),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
+                  ),
+                  const SizedBox(height: 15),
+                  GestureDetector(
+                    onTap: _pickFollowUpReminder,
+                    child: AbsorbPointer(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: _followUpReminder == null
+                              ? "Select Follow-up Reminder"
+                              : DateFormat('yyyy-MM-dd – kk:mm')
+                                  .format(_followUpReminder!),
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                     ),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    Container(
-                      width: double.maxFinite,
-                      decoration: BoxDecoration(
-                          color: const Color(0XFFFFFFFF),
-                          borderRadius: BorderRadius.circular(7)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 16.0, horizontal: 18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 10),
-                                const Text(
-                                  "Select Date",
-                                  style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                                const SizedBox(height: 10),
-                                GestureDetector(
-                                  onTap: () => _selectDate(context),
-                                  child: Container(
-                                    height: 40,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: const Color(0XFF999999)),
-                                      borderRadius: BorderRadius.circular(5),
-                                      color: Colors.white,
-                                    ),
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      selectedDate != null
-                                          ? "${selectedDate!.day}-${selectedDate!.month}-${selectedDate!.year}" // Show selected date
-                                          : "Pick a date",
-                                      style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Select Time",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(height: 10),
-                            GestureDetector(
-                              onTap: () => _selectTime(context),
-                              child: Container(
-                                height: 40,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: const Color(0XFF999999)),
-                                  borderRadius: BorderRadius.circular(5),
-                                  color: Colors.white,
-                                ),
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  selectedTime != null
-                                      ? selectedTime!
-                                          .format(context) // Show selected time
-                                      : "Pick a time",
-                                  style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    Container(
-                      width: double.maxFinite,
-                      decoration: BoxDecoration(
-                          color: const Color(0XFFFFFFFF),
-                          borderRadius: BorderRadius.circular(7)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 16.0, horizontal: 18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Location Type",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            SizedBox(
-                              height: 30,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(2),
-                                  border: Border.all(
-                                    color: const Color(0XFF999999),
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
-                                  child: DropdownButton<String>(
-                                    value:
-                                        selectedMeetingLocation, // The currently selected value
-                                    onChanged: (String? newValue) {
-                                      setState(() {
-                                        selectedMeetingLocation = newValue!;
-                                      });
-                                    },
-                                    isExpanded: true,
-                                    underline:
-                                        Container(), // Remove the default underline
-                                    items: <String>[
-                                      'On-site',
-                                      'Virtual',
-                                    ].map<DropdownMenuItem<String>>(
-                                        (String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(
-                                          value,
-                                          style: const TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      );
-                                    }).toList(),
-                                    hint: const Text(
-                                      'Select an option',
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Address / Meeting Link",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            SizedBox(
-                              height: 30,
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                    horizontal: 8.0,
-                                  ),
-                                  prefixIconConstraints: const BoxConstraints(
-                                    minWidth: 0,
-                                    minHeight: 0,
-                                  ),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Assigned Field Staff:",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            SizedBox(
-                              height: 30,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(2),
-                                  border: Border.all(
-                                    color: const Color(0XFF999999),
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
-                                  child: DropdownButton<String>(
-                                    value:
-                                        selectedValue, // The currently selected value
-                                    onChanged: (String? newValue) {
-                                      setState(() {
-                                        selectedValue = newValue!;
-                                      });
-                                    },
-                                    isExpanded: true,
-                                    underline:
-                                        Container(), // Remove the default underline
-                                    items: <String>[
-                                      'Option 1',
-                                      'Option 2',
-                                    ].map<DropdownMenuItem<String>>(
-                                        (String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(
-                                          value,
-                                          style: const TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      );
-                                    }).toList(),
-                                    hint: const Text(
-                                      'Select an option',
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Meeting Agenda:",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            SizedBox(
-                              height: 75,
-                              child: TextField(
-                                maxLines: null,
-                                expands: true,
-                                textAlign: TextAlign.left,
-                                textAlignVertical: TextAlignVertical.top,
-                                keyboardType: TextInputType.multiline,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.only(
-                                    top:
-                                        5.0, // Adjust the vertical padding to start from the top
-                                    left:
-                                        8.0, // Adjust the horizontal padding to the left
-                                    right: 0.0, // Remove padding from the right
-                                    bottom: 0.0,
-                                  ),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                ),
-                                scrollPadding: const EdgeInsets.all(10.0),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Notes / Remarks:",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            SizedBox(
-                              height: 75,
-                              child: TextField(
-                                maxLines: null,
-                                expands: true,
-                                textAlign: TextAlign.left,
-                                textAlignVertical: TextAlignVertical.top,
-                                keyboardType: TextInputType.multiline,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(2),
-                                    borderSide: const BorderSide(
-                                      color: Color(0XFF999999),
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.only(
-                                    top:
-                                        5.0, // Adjust the vertical padding to start from the top
-                                    left:
-                                        8.0, // Adjust the horizontal padding to the left
-                                    right: 0.0, // Remove padding from the right
-                                    bottom: 0.0,
-                                  ),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                ),
-                                scrollPadding: const EdgeInsets.all(10.0),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text(
-                              "Attach Files ",
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w400),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            Container(
-                              height: 40,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(2),
-                                  border: Border.all(
-                                      color: const Color(0XFF999999))),
-                              child: Row(
-                                children: [
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Container(
-                                    height: 22,
-                                    width: 91,
-                                    decoration: BoxDecoration(
-                                        color: const Color(0XFFD9D9D9),
-                                        borderRadius: BorderRadius.circular(2)),
-                                    child: const Row(
-                                      children: [
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        Text(
-                                          "Choose File",
-                                          style: TextStyle(
-                                              fontSize: 10.4,
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                        SizedBox(
-                                          width: 8,
-                                        ),
-                                        Icon(
-                                          Icons.file_upload_outlined,
-                                          color: Colors.black,
-                                          size: 12,
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  const Text(
-                                    "No file chosen",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 10.14,
-                                        color: Color(0XFF6D6D6D)),
-                                  )
-                                ],
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Checkbox(
-                                  value: isChecked,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isChecked = value!;
-                                    });
-                                  },
-                                ),
-                                Text("Repeat Meeting"),
-                              ],
-                            ),
-                            if (isChecked) // Show radio buttons when checked
-                              Row(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Radio<String>(
-                                        value: "Repeat Weekly",
-                                        groupValue: selectedOption,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            selectedOption = value;
-                                          });
-                                        },
-                                      ),
-                                      Text("Repeat Weekly"),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Radio<String>(
-                                        value: "Monthly",
-                                        groupValue: selectedOption,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            selectedOption = value;
-                                          });
-                                        },
-                                      ),
-                                      Text("Monthly"),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            // const SizedBox(
-                            //   height: 10,
-                            // ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Checkbox(
-                                  value: isReminderChecked,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isReminderChecked = value!;
-                                    });
-                                  },
-                                ),
-                                Text("Follow-Up Reminder"),
-                              ],
-                            ),
-                            if (isReminderChecked) // Show radio buttons when checked
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () => _selectDate(context),
-                                    child: Container(
-                                      height: 40,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: const Color(0XFF999999)),
-                                        borderRadius: BorderRadius.circular(5),
-                                        color: Colors.white,
-                                      ),
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        selectedDate != null
-                                            ? "${selectedDate!.day}-${selectedDate!.month}-${selectedDate!.year}" // Show selected date
-                                            : "Pick a date",
-                                        style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () => _selectTime(context),
-                                    child: Container(
-                                      height: 40,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: const Color(0XFF999999)),
-                                        borderRadius: BorderRadius.circular(5),
-                                        color: Colors.white,
-                                      ),
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        selectedTime != null
-                                            ? selectedTime!.format(
-                                                context) // Show selected time
-                                            : "Pick a time",
-                                        style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            // const SizedBox(
-                            //   height: 15,
-                            // ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Container(
-                                  width: 120,
-                                  height: 38,
-                                  decoration: BoxDecoration(
-                                      border:
-                                          Border.all(color: Color(0XFF094497)),
-                                      borderRadius: BorderRadius.circular(20)),
-                                  child: ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white,
-                                          elevation: 0),
-                                      child: const Text(
-                                        "Cancel",
-                                        style: TextStyle(
-                                            color: Color(0XFF094497),
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 10.14),
-                                      )),
-                                ),
-                                ElevatedButton(
-                                    onPressed: () {},
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color(0XFF094497),
-                                        elevation: 0),
-                                    child: const Text(
-                                      "Create Meeting",
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 10.14),
-                                    )),
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 15),
+                  ElevatedButton(
+                    onPressed: _pickFile,
+                    child: Text(_selectedFile == null
+                        ? "Upload Attachment"
+                        : "Attachment: ${_selectedFile!.path.split('/').last}"),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                        onPressed: _submitMeeting,
+                        child: const Text("Submit Meeting")),
+                  ),
+                ],
               ),
             ),
           )

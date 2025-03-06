@@ -50,7 +50,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:salesman/view/app_base_screen/view/dashboard_screen.dart';
+import 'package:salesman/view/app_base_screen/app_base_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:salesman/view/app_base_screen/view/tabview.dart';
 
@@ -68,53 +68,56 @@ class _SplashScreenState extends State<SplashScreen> {
     _checkLoginStatus();
   }
 
-  // Future<void> _checkLoginStatus() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final token = prefs.getString('auth_token');
-
-  //   // Delay for splash screen effect
-  //   await Future.delayed(const Duration(seconds: 3));
-
-  //   if (token != null && token.isNotEmpty) {
-  //     // If token exists, go to home screen
-  //     Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(builder: (context) => const MyTabViewInBody()),
-  //     );
-  //   } else {
-  //     // No token found, navigate to login screen
-  //     Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(builder: (context) => const DashBoardScreen()),
-  //     );
-  //   }
-  // }
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.reload(); // Ensure the latest data is loaded
-    final token = prefs.getString('auth_token')?.trim();
-
+    final token = prefs.getString('auth_token');
     log('🔍 Checking Token in SplashScreen: $token');
 
-    await Future.delayed(const Duration(seconds: 3)); // Keep splash delay
-
-    if (!mounted)
-      return; // Ensure the widget is still mounted before navigation
+    // Delay for splash screen effect
+    await Future.delayed(const Duration(seconds: 3));
 
     if (token != null && token.isNotEmpty) {
-      log('✅ Valid Token Found, Navigating to MyTabViewInBody');
+      log('✅ Valid Token Found, Navigating to DashBoardScreen');
+      // If token exists, go to home screen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const DashBoardScreen()),
+        MaterialPageRoute(builder: (context) => const BaseScreen()),
       );
     } else {
-      log('⚠️ No Valid Token Found, Navigating to DashBoardScreen');
+      log('⚠️ No Valid Token Found, Navigating to MyTabViewInBoady');
+      // No token found, navigate to login screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MyTabViewInBody()),
       );
     }
   }
+  // Future<void> _checkLoginStatus() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   await prefs.reload(); // Ensure the latest data is loaded
+  //   final token = prefs.getString('auth_token')?.trim();
+
+  //   log('🔍 Checking Token in SplashScreen: $token');
+
+  //   await Future.delayed(const Duration(seconds: 3)); // Keep splash delay
+
+  //   if (!mounted)
+  //     return; // Ensure the widget is still mounted before navigation
+
+  //   if (token != null && token.isNotEmpty) {
+  //     log('✅ Valid Token Found, Navigating to MyTabViewInBody');
+  //     Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => const DashBoardScreen()),
+  //     );
+  //   } else {
+  //     log('⚠️ No Valid Token Found, Navigating to DashBoardScreen');
+  //     Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => const MyTabViewInBody()),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

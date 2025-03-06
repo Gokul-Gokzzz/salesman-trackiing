@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:salesman/controller/collection_controller.dart';
+import 'package:salesman/view/app_base_screen/view/add_collection_screen.dart';
 
 class CollectionsScreen extends StatefulWidget {
   const CollectionsScreen({super.key});
@@ -15,7 +16,8 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<CollectionProvider>(context, listen: false).loadCollections();
+      Provider.of<CollectionProvider>(context, listen: false)
+          .fetchCollections();
     });
   }
 
@@ -200,12 +202,12 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                                                     fontSize: 10,
                                                     color: Color(0XFF094497)),
                                               ),
-                                              // Text(
-                                              //   "${collection.date?.toLocal().toString().split(" ")[0] ?? "N/A"}, ${collection.date?.toLocal().toString().split(" ")[1].split(".")[0] ?? "N/A"}",
-                                              //   style: const TextStyle(
-                                              //       fontWeight: FontWeight.w400,
-                                              //       fontSize: 10),
-                                              // ),
+                                              Text(
+                                                "${collection.date?.toLocal().toString().split(" ")[0] ?? "N/A"}, ${collection.date?.toLocal().toString().split(" ")[1].split(".")[0] ?? "N/A"}",
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 10),
+                                              ),
                                             ],
                                           ),
                                           Row(
@@ -243,7 +245,13 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                     SizedBox(
                       width: 150,
                       child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        AddCollectionScreen()));
+                          },
                           style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0XFF094497),
                               elevation: 0),

@@ -238,7 +238,7 @@ class _ScheduledMeetingsState extends State<ScheduledMeetings> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const ClientMeetingDetails()),
+                      builder: (context) => const ClientMeetingDetailsScreen()),
                 );
               },
               style: ElevatedButton.styleFrom(

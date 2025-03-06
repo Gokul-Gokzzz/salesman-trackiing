@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:salesman/controller/expense_controleer.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:salesman/controller/expense_controlelr.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
@@ -19,6 +20,26 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ExpenseController>().loadExpenses(); // Load expenses on init
     });
+  }
+
+  final TextEditingController _expenseTypeController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _noteController = TextEditingController();
+  String? _receiptUrl;
+
+  Future<void> _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      setState(() {
+        _receiptUrl = result.files.single.name; // Get file name
+      });
+    } else {
+      // User canceled the picker
+      setState(() {
+        _receiptUrl = null;
+      });
+    }
   }
 
   @override
@@ -114,53 +135,103 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                             ),
                             SizedBox(
                               height: 30,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(2),
-                                  border: Border.all(
-                                    color: const Color(0XFF999999),
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
-                                  child: DropdownButton<String>(
-                                    value:
-                                        selectedValue, // The currently selected value
-                                    onChanged: (String? newValue) {
-                                      setState(() {
-                                        selectedValue = newValue!;
-                                      });
-                                    },
-                                    isExpanded: true,
-                                    underline:
-                                        Container(), // Remove the default underline
-                                    items: <String>[
-                                      'Option 1',
-                                      'Option 2',
-                                      'Option 3'
-                                    ].map<DropdownMenuItem<String>>(
-                                        (String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(
-                                          value,
-                                          style: const TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      );
-                                    }).toList(),
-                                    hint: const Text(
-                                      'Select an option',
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold),
+                              child: TextFormField(
+                                controller: _expenseTypeController,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(2),
+                                    borderSide: const BorderSide(
+                                      color: Color(0XFF999999),
                                     ),
                                   ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(2),
+                                    borderSide: const BorderSide(
+                                      color: Color(0XFF999999),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(2),
+                                    borderSide: const BorderSide(
+                                      color: Color(0XFF999999),
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 8.0,
+                                    horizontal: 8.0,
+                                  ),
+                                  // prefixIcon: const Padding(
+                                  //   padding:
+                                  //       EdgeInsets.only(left: 8.0, right: 4.0),
+                                  // child: Text(
+                                  //   '₹',
+                                  //   style: TextStyle(
+                                  //     fontSize: 12,
+                                  //     fontWeight: FontWeight.bold,
+                                  //     color: Colors.black,
+                                  //   ),
+                                  // ),
+                                  // ),
+                                  // prefixIconConstraints: const BoxConstraints(
+                                  //   minWidth: 0,
+                                  //   minHeight: 0,
+                                  // ),
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
+                            // SizedBox(
+                            //   height: 30,
+                            //   child: Container(
+                            //     decoration: BoxDecoration(
+                            //       borderRadius: BorderRadius.circular(2),
+                            //       border: Border.all(
+                            //         color: const Color(0XFF999999),
+                            //       ),
+                            //     ),
+                            //     child: Padding(
+                            //       padding: const EdgeInsets.symmetric(
+                            //           horizontal: 8.0),
+                            //       child: DropdownButton<String>(
+                            //         value:
+                            //             selectedValue, // The currently selected value
+                            //         onChanged: (String? newValue) {
+                            //           setState(() {
+                            //             selectedValue = newValue!;
+                            //           });
+                            //         },
+                            //         isExpanded: true,
+                            //         underline:
+                            //             Container(), // Remove the default underline
+                            //         items: <String>[
+                            //           'Option 1',
+                            //           'Option 2',
+                            //           'Option 3'
+                            //         ].map<DropdownMenuItem<String>>(
+                            //             (String value) {
+                            //           return DropdownMenuItem<String>(
+                            //             value: value,
+                            //             child: Text(
+                            //               value,
+                            //               style: const TextStyle(
+                            //                   fontSize: 10,
+                            //                   fontWeight: FontWeight.bold),
+                            //             ),
+                            //           );
+                            //         }).toList(),
+                            //         hint: const Text(
+                            //           'Select an option',
+                            //           style: TextStyle(
+                            //               fontSize: 10,
+                            //               fontWeight: FontWeight.bold),
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
                             const SizedBox(
                               height: 10,
                             ),
@@ -174,7 +245,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                             ),
                             SizedBox(
                               height: 30,
-                              child: TextField(
+                              child: TextFormField(
+                                controller: _amountController,
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(2),
@@ -234,7 +306,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                             ),
                             SizedBox(
                               height: 75,
-                              child: TextField(
+                              child: TextFormField(
+                                controller: _noteController,
                                 maxLines: null,
                                 expands: true,
                                 textAlign: TextAlign.left,
@@ -302,16 +375,19 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                     decoration: BoxDecoration(
                                         color: const Color(0XFFD9D9D9),
                                         borderRadius: BorderRadius.circular(2)),
-                                    child: const Row(
+                                    child: Row(
                                       children: [
                                         SizedBox(
                                           width: 5,
                                         ),
-                                        Text(
-                                          "Choose File",
-                                          style: TextStyle(
-                                              fontSize: 10.4,
-                                              fontWeight: FontWeight.w400),
+                                        ElevatedButton(
+                                          onPressed: _pickFile,
+                                          child: Text(
+                                            "Choose File",
+                                            style: TextStyle(
+                                                fontSize: 10.4,
+                                                fontWeight: FontWeight.w400),
+                                          ),
                                         ),
                                         SizedBox(
                                           width: 8,
@@ -327,8 +403,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                   const SizedBox(
                                     width: 10,
                                   ),
-                                  const Text(
-                                    "No file chosen",
+                                  Text(
+                                    _receiptUrl != null
+                                        ? "File Selected"
+                                        : "No file chosen",
                                     style: TextStyle(
                                         fontWeight: FontWeight.w400,
                                         fontSize: 10.14,
@@ -341,7 +419,44 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                               height: 15,
                             ),
                             ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () async {
+                                  final expenseType =
+                                      _expenseTypeController.text;
+                                  final amount =
+                                      int.tryParse(_amountController.text) ?? 0;
+                                  final notes = _noteController.text;
+                                  final receiptUrl = _receiptUrl ?? "";
+                                  if (expenseType.isEmpty || amount <= 0) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(
+                                              "Please fill in all required fields")),
+                                    );
+                                    return;
+                                  }
+                                  await expenseController.submitExpense(
+                                    expenseType: expenseType,
+                                    amount: amount,
+                                    notes: notes,
+                                    receiptUrl: receiptUrl,
+                                    status: "pending",
+                                  );
+                                  if (expenseController.errorMessage == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(
+                                              "Expense submitted successfully!")),
+                                    );
+                                    Navigator.pop(
+                                        context); // Go back to previous screen
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(
+                                              expenseController.errorMessage!)),
+                                    );
+                                  }
+                                },
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0XFF094497),
                                     elevation: 0),

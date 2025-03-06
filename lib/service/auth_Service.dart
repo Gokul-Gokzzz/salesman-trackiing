@@ -142,6 +142,9 @@ class AuthService {
         },
       );
 
+      // Log the full response data
+      log('📩 [FULL LOGIN RESPONSE] ${response.toString()}');
+
       if (response.statusCode == 200 && response.data['token'] != null) {
         final token = response.data['token'];
         await _saveUserData(response.data);
@@ -152,8 +155,8 @@ class AuthService {
         return null;
       }
     } on DioException catch (e) {
-      if (e.response?.statusCode == 400) {
-        log('❌ Invalid credentials: ${e.response?.data}');
+      if (e.response != null) {
+        log('❌ [LOGIN ERROR] Status: ${e.response?.statusCode}, Data: ${e.response?.data}');
       } else {
         log('❌ Unexpected Error: ${e.message}');
       }
