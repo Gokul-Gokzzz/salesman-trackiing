@@ -7,7 +7,7 @@ class LeaderboardController with ChangeNotifier {
   LeaderBoardModel? leaderboard;
   bool isLoading = false;
 
-  Future<void> getLeaderboard() async {
+  Future<void> fetchLeaderboardData() async {
     isLoading = true;
     notifyListeners();
 

@@ -25,12 +25,16 @@ class _RegisterFormState extends State<RegisterForm> {
       TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
   @override
   void dispose() {
     _fullNameController.dispose();
     _mobileNumberController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -42,16 +46,12 @@ class _RegisterFormState extends State<RegisterForm> {
     String confirmPassword = _confirmPasswordController.text.trim();
 
     if (fullName.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("All fields are required!")),
-      );
+      _showErrorDialog("All fields are required!");
       return;
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Passwords do not match!")),
-      );
+      _showErrorDialog("Passwords do not match!");
       return;
     }
 
@@ -83,10 +83,27 @@ class _RegisterFormState extends State<RegisterForm> {
             MaterialPageRoute(builder: (context) => BaseScreen()),
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
+          _showErrorDialog(message);
         }
+      },
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Registration Failed",
+              style: TextStyle(color: Colors.red)),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        );
       },
     );
   }
@@ -99,23 +116,6 @@ class _RegisterFormState extends State<RegisterForm> {
         child: Column(
           children: [
             const SizedBox(height: 50),
-            Row(
-              children: [
-                const Text(
-                  "Register",
-                  style: TextStyle(
-                    color: Color(0XFF094497),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 36,
-                  ),
-                ),
-                const Spacer(),
-                _buildSocialIcon("assets/images/flat-color-icons_google.svg"),
-                const SizedBox(width: 16),
-                _buildSocialIcon("assets/images/logos_facebook.svg"),
-              ],
-            ),
-            const SizedBox(height: 20),
             _buildTextField(
                 controller: _fullNameController, hintText: "Full Name"),
             const SizedBox(height: 20),
@@ -125,110 +125,73 @@ class _RegisterFormState extends State<RegisterForm> {
                 controller: _mobileNumberController, hintText: "Mobile Number"),
             const SizedBox(height: 20),
             _buildTextField(
-                controller: _passwordController,
-                hintText: "Password",
-                obscureText: true),
+              controller: _passwordController,
+              hintText: "Password",
+              obscureText: _obscurePassword,
+              toggleVisibility: () {
+                setState(() => _obscurePassword = !_obscurePassword);
+              },
+            ),
             const SizedBox(height: 20),
             _buildTextField(
-                controller: _confirmPasswordController,
-                hintText: "Confirm Password",
-                obscureText: true),
-            const SizedBox(height: 40),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _handleSignUp,
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      backgroundColor: const Color(0XFF094497),
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 13.0),
-                      child: Text(
-                        "Sign-up",
-                        style: TextStyle(
-                          color: Color(0XFFF6F6F9),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 17,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                GestureDetector(
-                  onTap: widget.onLogin,
-                  child: const SizedBox(
-                    width: 130,
-                    child: Text(
-                      "Already a Member? Login",
-                      style: TextStyle(
-                        color: Color(0XFFB3B3B3),
-                        fontWeight: FontWeight.w400,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              controller: _confirmPasswordController,
+              hintText: "Confirm Password",
+              obscureText: _obscureConfirmPassword,
+              toggleVisibility: () {
+                setState(
+                    () => _obscureConfirmPassword = !_obscureConfirmPassword);
+              },
             ),
             const SizedBox(height: 40),
+            ElevatedButton(
+              onPressed: _handleSignUp,
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0XFF094497)),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 13.0),
+                child: Text(
+                  "Sign-up",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 17),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // Helper method to create a social icon button
-  Widget _buildSocialIcon(String assetPath) {
-    return Container(
-      height: 45,
-      width: 45,
-      decoration: BoxDecoration(
-        color: const Color(0xffFFFFFF),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SvgPicture.asset(assetPath),
-      ),
-    );
-  }
-
-  // Helper method to create a text field
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
     bool obscureText = false,
+    VoidCallback? toggleVisibility,
   }) {
     return TextField(
       controller: controller,
       obscureText: obscureText,
       decoration: InputDecoration(
         filled: true,
-        fillColor: const Color(0xFFFFFFFF),
+        fillColor: Colors.white,
         hintText: hintText,
         hintStyle: const TextStyle(
-          color: Color(0xFFA0A0A0),
-          fontWeight: FontWeight.w400,
-        ),
+            color: Color(0xFFA0A0A0), fontWeight: FontWeight.w400),
         contentPadding:
             const EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none,
-        ),
+            borderRadius: BorderRadius.circular(10.0),
+            borderSide: BorderSide.none),
+        suffixIcon: toggleVisibility != null
+            ? IconButton(
+                icon:
+                    Icon(obscureText ? Icons.visibility_off : Icons.visibility),
+                onPressed: toggleVisibility,
+              )
+            : null,
       ),
-      style: const TextStyle(),
     );
   }
 }
