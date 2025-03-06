@@ -11,6 +11,7 @@ import 'package:salesman/controller/auth_conroller.dart';
 import 'package:salesman/controller/collection_controller.dart';
 import 'package:salesman/controller/dashboard_controller.dart';
 import 'package:salesman/controller/expense_controlelr.dart';
+import 'package:salesman/controller/fetch_meeting_controller.dart';
 import 'package:salesman/controller/field_staff_controller.dart';
 import 'package:salesman/controller/forgot_password_provider.dart';
 import 'package:salesman/controller/get_client_controller.dart';
@@ -47,6 +48,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => FieldStaffController()),
         ChangeNotifierProvider(
             create: (context) => AddClientMeetingDetailsController()),
+        ChangeNotifierProvider(create: (context) => GetMeetingController()),
       ],
       child: const MyApp(),
     ),

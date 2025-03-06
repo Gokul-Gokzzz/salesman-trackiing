@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:salesman/controller/expense_controlelr.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
@@ -12,13 +15,27 @@ class ExpensesScreen extends StatefulWidget {
 }
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
-  String? selectedValue = 'Option 1';
+  // String? selectedValue = 'Option 1';
+  Future<void> _fetchExpenses() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? salesmanId = prefs.getString('id');
+
+    if (salesmanId == null || salesmanId.isEmpty) {
+      log("❌ Salesman ID is null or empty!");
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Salesman ID not found")));
+      return;
+    }
+
+    log("✅ Salesman ID: $salesmanId");
+    await context.read<ExpenseController>().loadExpenses(salesmanId);
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ExpenseController>().loadExpenses(); // Load expenses on init
+      _fetchExpenses(); // Load expenses on init
     });
   }
 
@@ -377,15 +394,15 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                         borderRadius: BorderRadius.circular(2)),
                                     child: Row(
                                       children: [
-                                        SizedBox(
-                                          width: 5,
-                                        ),
+                                        // SizedBox(
+                                        //   width: 5,
+                                        // ),
                                         ElevatedButton(
                                           onPressed: _pickFile,
                                           child: Text(
                                             "Choose File",
                                             style: TextStyle(
-                                                fontSize: 10.4,
+                                                fontSize: 10,
                                                 fontWeight: FontWeight.w400),
                                           ),
                                         ),
@@ -401,7 +418,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                     ),
                                   ),
                                   const SizedBox(
-                                    width: 10,
+                                    width: 45,
                                   ),
                                   Text(
                                     _receiptUrl != null

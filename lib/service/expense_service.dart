@@ -3,15 +3,16 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:salesman/model/add_expence_model.dart';
 import 'package:salesman/model/expense_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ExpenseService {
   final Dio _dio = Dio();
   final String _baseUrl =
-      'https://salesman-tracking-app.onrender.com/api/expense/salesman/67a9bcd879021f36d7fe0681';
+      'https://salesman-tracking-app.onrender.com/api/expense/salesman  ';
 
-  Future<GetExpenseModel?> fetchExpenses() async {
+  Future<GetExpenseModel?> fetchExpenses(String salesmanId) async {
     try {
-      final response = await _dio.get(_baseUrl);
+      final response = await _dio.get("$_baseUrl/$salesmanId");
       if (response.statusCode == 200) {
         return GetExpenseModel.fromJson(response.data);
       }
@@ -29,6 +30,14 @@ class ExpenseService {
     String? status,
   }) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('auth_token'); // Retrieve saved token
+
+      if (token == null) {
+        log("⚠️ No auth token found. User might not be logged in.");
+        return null;
+      }
+
       Response response = await _dio.post(
         "https://salesman-tracking-app.onrender.com/api/expense",
         data: {
@@ -40,8 +49,7 @@ class ExpenseService {
         },
         options: Options(
           headers: {
-            "Authorization":
-                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmQ0YzQ3ODVlMjM3NmFjNzIwODU5NyIsIm5hbWUiOiJqa3oiLCJpYXQiOjE3NDA5OTE1OTksImV4cCI6MTc0MTAyMDM5OX0.ExK0QBCbo6vwqLEfoU9CIZR5pPW5DXzvLxmL8yP_Sok", // 🔹 Add a valid token
+            "Authorization": "Bearer $token", // Use dynamic token
             "Content-Type": "application/json",
           },
         ),
@@ -58,4 +66,18 @@ class ExpenseService {
     }
     return null;
   }
+
+//  Future<void> _saveUserData(Map<String, dynamic> data) async {
+//     final prefs = await SharedPreferences.getInstance();
+//     await prefs.setString('auth_token', data['token']);
+//     await prefs.setString('user_name', data['user']['name'] ?? '');
+
+//     // Verify if data is saved properly
+//     log('✅ Saving Token: ${data['token']}');
+//     log('✅ Saving User Name: ${data['user']['name']}');
+
+//     // Retrieve immediately to check
+//     String? savedToken = prefs.getString('auth_token');
+//     log('🔎 Retrieved Token: $savedToken');
+//   }
 }

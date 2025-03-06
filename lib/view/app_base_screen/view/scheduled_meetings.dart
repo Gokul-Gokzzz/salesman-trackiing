@@ -1,8 +1,10 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:salesman/controller/meeting_controller.dart'; // Import MeetingController
-import 'package:salesman/model/meeting_model.dart'; // Import MeetingModel
+import 'package:salesman/controller/fetch_meeting_controller.dart';
+import 'package:salesman/model/meeting_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'client_meeting_details.dart';
 
 class ScheduledMeetings extends StatefulWidget {
@@ -13,27 +15,40 @@ class ScheduledMeetings extends StatefulWidget {
 }
 
 class _ScheduledMeetingsState extends State<ScheduledMeetings> {
+  Future<void> _fetchMeeting() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? salesmanId = prefs.getString('id');
+
+    if (salesmanId == null || salesmanId.isEmpty) {
+      log("❌ Salesman ID is null or empty!");
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Salesman ID not found")));
+      return;
+    }
+
+    log("✅ Salesman ID: $salesmanId");
+    await context.read<GetMeetingController>().getMeetings(salesmanId);
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context
-          .read<MeetingController>()
-          .fetchMeetings(); // Fetch meetings on init
+      _fetchMeeting();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final meetingController = context.watch<MeetingController>();
-    final meetingModel = meetingController.meetingModel;
+    final meetingController = context.watch<GetMeetingController>();
+    final meetings = meetingController.meetings;
     final isLoading = meetingController.isLoading;
-    final errorMessage = meetingController.errorMessage;
 
     return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
       body: Column(
         children: [
+          // Header Section
           Stack(
             children: [
               Container(
@@ -55,7 +70,7 @@ class _ScheduledMeetingsState extends State<ScheduledMeetings> {
                     style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.w600,
-                      color: Color(0XFFFFFFFF),
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -64,14 +79,14 @@ class _ScheduledMeetingsState extends State<ScheduledMeetings> {
                 top: 40,
                 left: 15,
                 child: InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
+                  onTap: () => Navigator.pop(context),
                   child: SvgPicture.asset("assets/images/backbutton.svg"),
                 ),
               ),
             ],
           ),
+
+          // Content Section
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 13.0),
@@ -91,145 +106,30 @@ class _ScheduledMeetingsState extends State<ScheduledMeetings> {
                     ),
                   ),
                   const SizedBox(height: 10),
+
+                  // Meeting List
                   Expanded(
                     child: isLoading
                         ? const Center(child: CircularProgressIndicator())
-                        : errorMessage != null
-                            ? Center(child: Text(errorMessage))
-                            : meetingModel == null ||
-                                    meetingModel.meetings == null ||
-                                    meetingModel.meetings!.isEmpty
-                                ? const Center(
-                                    child: Text('No meetings scheduled.'))
-                                : ListView.builder(
-                                    padding: EdgeInsets.zero,
-                                    itemCount: meetingModel.meetings!.length,
-                                    itemBuilder: (context, index) {
-                                      Meeting meeting =
-                                          meetingModel.meetings![index];
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 14.0),
-                                        child: Container(
-                                          width: double.maxFinite,
-                                          decoration: BoxDecoration(
-                                            color: const Color(0XFFFFFFFF),
-                                            borderRadius:
-                                                BorderRadius.circular(7),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 14.0, horizontal: 20),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      "Meeting : ${index + 1}",
-                                                      style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 15,
-                                                        color:
-                                                            Color(0XFF094497),
-                                                      ),
-                                                    ),
-                                                    // const Text(
-                                                    //   ":",
-                                                    //   style: TextStyle(
-                                                    //     fontWeight:
-                                                    //         FontWeight.w600,
-                                                    //     fontSize: 15,
-                                                    //   ),
-                                                    // )
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 14),
-                                                Row(
-                                                  children: [
-                                                    const Text(
-                                                      "Date: ",
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 15,
-                                                        color:
-                                                            Color(0XFF094497),
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      (meeting.date != null
-                                                          ? "${meeting.date!.day}-${meeting.date!.month}-${meeting.date!.year}"
-                                                          : "Date N/A"),
-                                                      style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 15,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 14),
-                                                Row(
-                                                  children: [
-                                                    const Text(
-                                                      "Location: ",
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 15,
-                                                        color:
-                                                            Color(0XFF094497),
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      meeting.location ?? "N/A",
-                                                      style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 15,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 14),
-                                                Row(
-                                                  children: [
-                                                    const Text(
-                                                      "Agenda: ",
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 15,
-                                                        color:
-                                                            Color(0XFF094497),
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      meeting.agenda ?? "N/A",
-                                                      style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 15,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 15),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
+                        : (meetings == null || meetings.isEmpty)
+                            ? const Center(
+                                child: Text('No meetings scheduled.'))
+                            : ListView.builder(
+                                padding: EdgeInsets.zero,
+                                itemCount: meetings.length,
+                                itemBuilder: (context, index) {
+                                  GetMeeting meeting = meetings[index];
+                                  return MeetingCard(
+                                      meeting: meeting, index: index);
+                                },
+                              ),
                   ),
                 ],
               ),
             ),
           ),
+
+          // Add New Meeting Button
           const SizedBox(height: 20),
           SizedBox(
             width: 262,
@@ -264,6 +164,64 @@ class _ScheduledMeetingsState extends State<ScheduledMeetings> {
           ),
           const SizedBox(height: 20),
         ],
+      ),
+    );
+  }
+}
+
+// Meeting Card Widget
+class MeetingCard extends StatelessWidget {
+  final GetMeeting meeting;
+  final int index;
+
+  const MeetingCard({Key? key, required this.meeting, required this.index})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14.0),
+      child: Container(
+        width: double.maxFinite,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(7),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Meeting : ${index + 1}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  color: Color(0XFF094497),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                "Date: ${meeting.createdAt ?? "N/A"}",
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                "Location: ${meeting.locationType ?? "N/A"}",
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                "Agenda: ${meeting.agenda ?? "N/A"}",
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+              ),
+              const SizedBox(height: 15),
+            ],
+          ),
+        ),
       ),
     );
   }

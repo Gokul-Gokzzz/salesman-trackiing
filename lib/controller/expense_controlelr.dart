@@ -12,11 +12,11 @@ class ExpenseController extends ChangeNotifier {
   List<Expense> get expenses => _expenses;
   bool get isLoading => _isLoading;
 
-  Future<void> loadExpenses() async {
+  Future<void> loadExpenses(String salesmanId) async {
     _isLoading = true;
     notifyListeners();
 
-    final expenseModel = await _expenseService.fetchExpenses();
+    final expenseModel = await _expenseService.fetchExpenses(salesmanId);
     if (expenseModel != null) {
       _expenses = expenseModel.expenses ?? [];
     }

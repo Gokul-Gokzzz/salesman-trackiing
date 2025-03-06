@@ -13,6 +13,8 @@ class MeetingService {
       headers: {"Content-Type": "application/json"},
     ),
   );
+  final String _baseUrl =
+      "https://salesman-tracking-app.onrender.com/api/meeting/salesman";
 
   MeetingService() {
     _dio.interceptors.add(
@@ -39,26 +41,41 @@ class MeetingService {
     );
   }
 
-  Future<MeetingModel?> getMeetings() async {
-    try {
-      final response = await _dio
-          .get('https://salesman-tracking-app.onrender.com/api/meeting');
-      log('Raw API Response: ${response.data}'); // Add this line
-      if (response.statusCode == 200) {
-        final meetingModel = MeetingModel.fromJson(response.data);
-        log('Parsed MeetingModel: ${meetingModel.meetings}'); // Add this line
-        return meetingModel;
-      } else {
-        return null;
-      }
-    } on DioException catch (e) {
-      log('Dio Exception: ${e.toString()}');
-      return null;
-    } catch (e) {
-      log('General Exception: ${e.toString()}');
-      return null;
-    }
-  }
+  // Future<MeetingModel?> fetchMeetings(String salesmanId) async {
+  //   try {
+  //     final response = await _dio.get("$_baseUrl/$salesmanId");
+
+  //     if (response.statusCode == 200) {
+  //       return MeetingModel.fromJson(response.data).meetings;
+  //     } else {
+  //       return null;
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching meetings: $e");
+  //     return null;
+  //   }
+  // }
+
+  // Future<MeetingModel?> getMeetings() async {
+  //   try {
+  //     final response = await _dio
+  //         .get('https://salesman-tracking-app.onrender.com/api/meeting');
+  //     log('Raw API Response: ${response.data}'); // Add this line
+  //     if (response.statusCode == 200) {
+  //       final meetingModel = MeetingModel.fromJson(response.data);
+  //       log('Parsed MeetingModel: ${meetingModel.meetings}'); // Add this line
+  //       return meetingModel;
+  //     } else {
+  //       return null;
+  //     }
+  //   } on DioException catch (e) {
+  //     log('Dio Exception: ${e.toString()}');
+  //     return null;
+  //   } catch (e) {
+  //     log('General Exception: ${e.toString()}');
+  //     return null;
+  //   }
+  // }
 
   /// Fetch Client Meeting
   Future<ClintMeetingModel?> getClientMeeting() async {
@@ -80,33 +97,33 @@ class MeetingService {
   }
 
   /// Create a New Client Meeting
-  Future<bool> createClientMeeting({
-    required String salesman,
-    required String client,
-    required DateTime date,
-    required String location,
-    required String agenda,
-  }) async {
-    try {
-      final response = await _dio.post(
-        'https://salesman-tracking-app.onrender.com/api/meeting',
-        data: {
-          "salesman": salesman,
-          "client": client,
-          "date": date.toIso8601String(),
-          "location": location,
-          "agenda": agenda,
-        },
-      );
+  // Future<bool> createClientMeeting({
+  //   required String salesman,
+  //   required String client,
+  //   required DateTime date,
+  //   required String location,
+  //   required String agenda,
+  // }) async {
+  //   try {
+  //     final response = await _dio.post(
+  //       'https://salesman-tracking-app.onrender.com/api/meeting',
+  //       data: {
+  //         "salesman": salesman,
+  //         "client": client,
+  //         "date": date.toIso8601String(),
+  //         "location": location,
+  //         "agenda": agenda,
+  //       },
+  //     );
 
-      log('Create Meeting Response: ${response.data}');
-      return response.statusCode == 201;
-    } on DioException catch (e) {
-      log('Dio Exception: ${e.message}');
-      return false;
-    } catch (e) {
-      log('General Exception: ${e.toString()}');
-      return false;
-    }
-  }
+  //     log('Create Meeting Response: ${response.data}');
+  //     return response.statusCode == 201;
+  //   } on DioException catch (e) {
+  //     log('Dio Exception: ${e.message}');
+  //     return false;
+  //   } catch (e) {
+  //     log('General Exception: ${e.toString()}');
+  //     return false;
+  //   }
+  // }
 }
