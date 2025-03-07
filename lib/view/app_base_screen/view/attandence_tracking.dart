@@ -133,7 +133,7 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
       return Container(); // Or handle empty data case
     }
     final record =
-        data.records!.first; // Assuming you want to display the first record
+        data.records!.last; // Assuming you want to display the first record
 
     return Container(
       width: double.maxFinite,

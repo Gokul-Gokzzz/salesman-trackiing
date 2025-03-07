@@ -120,7 +120,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
             onTap: () {
               Navigator.pop(context);
             },
-            child: Icon(Icons.arrow_back, color: Colors.white, size: 28),
+            child: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
           ),
         ),
       ],
