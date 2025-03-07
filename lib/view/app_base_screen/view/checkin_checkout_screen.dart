@@ -222,10 +222,10 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          DateFormat('yyyy-MM-dd')
+                          DateFormat('yyyy-MM-dd HH:mm:ss')
                               .format(DateTime.parse(attProvider.lastCheckIn)),
                           style: const TextStyle(
-                              fontWeight: FontWeight.w400, fontSize: 20),
+                              fontWeight: FontWeight.w400, fontSize: 16),
                         )
                       ],
                     ),
@@ -240,10 +240,10 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          DateFormat('yyyy-MM-dd')
+                          DateFormat('yyyy-MM-dd HH:mm:ss')
                               .format(DateTime.parse(attProvider.lastCheckOut)),
                           style: const TextStyle(
-                              fontWeight: FontWeight.w400, fontSize: 20),
+                              fontWeight: FontWeight.w400, fontSize: 16),
                         )
                       ],
                     ),
