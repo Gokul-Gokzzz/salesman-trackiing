@@ -32,7 +32,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         final provider = Provider.of<ClientProvider>(context, listen: false);
         log("Fetching client details for ID: 67ad71e20b04e1597a61f0eb");
         clientDetails = await provider.fetchClientDetails(widget.clientId);
-        log("Client details fetched: $clientDetails"); // Log the fetched client details
+        log("Client details fetched: ${clientDetails!.address}"); // Log the fetched client details
       } catch (e) {
         debugPrint("Error fetching client details: $e");
       } finally {
@@ -45,6 +45,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ClientProvider>(context, listen: false);
     return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
       body: Column(
@@ -72,9 +73,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   const SizedBox(height: 30.75),
                   isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : clientDetails == null
-                          ? const Center(child: Text("Client not found"))
-                          : _buildClientDetails(clientDetails!),
+                      // : clientDetails == null
+                      //     ? const Center(child: Text("Client not found"))
+                      : _buildClientDetails(),
                 ],
               ),
             ),
@@ -126,7 +127,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     );
   }
 
-  Widget _buildClientDetails(Client client) {
+  Widget _buildClientDetails() {
+    final provider = Provider.of<ClientProvider>(context, listen: false);
+    var client = provider.selectedClient;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -139,13 +142,13 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Name: ${client.name ?? 'N/A'}"),
-            Text("Company: ${client.companyName ?? 'N/A'}"),
-            Text("Email: ${client.email ?? 'N/A'}"),
-            Text("Contact: ${client.contact ?? 'N/A'}"),
-            Text("Address: ${client.address ?? 'N/A'}"),
-            Text("Outstanding Due: ${client.outstandingDue ?? 'N/A'}"),
-            Text("Orders Placed: ${client.ordersPlaced ?? 'N/A'}"),
+            Text("Name: ${client?.name ?? 'N/A'}"),
+            Text("Company: ${client?.companyName ?? 'N/A'}"),
+            Text("Email: ${client?.email ?? 'N/A'}"),
+            Text("Contact: ${client?.contact ?? 'N/A'}"),
+            Text("Address: ${client?.address ?? 'N/A'}"),
+            Text("Outstanding Due: ${client?.outstandingDue ?? 'N/A'}"),
+            Text("Orders Placed: ${client?.ordersPlaced ?? 'N/A'}"),
           ],
         ),
       ),

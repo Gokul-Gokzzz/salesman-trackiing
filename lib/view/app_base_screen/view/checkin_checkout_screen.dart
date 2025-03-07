@@ -2,8 +2,10 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
+import 'package:salesman/controller/attendence_controller.dart';
 import 'package:salesman/controller/auth_conroller.dart';
 import 'package:salesman/controller/check_in_controller.dart';
 import 'package:geolocator/geolocator.dart';
@@ -18,9 +20,6 @@ class CheckinCheckoutScreen extends StatefulWidget {
 
 class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
   final CheckInController checkInController = CheckInController();
-
-  String lastCheckIn = "Not Available";
-  String lastCheckOut = "Not Available";
 
   Future<String> _getLocation() async {
     Position position = await Geolocator.getCurrentPosition(
@@ -64,9 +63,12 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
     String location = await _getLocation(); // Fetch location
 
     await checkInController.handleCheckIn(context, salesmanId, location);
+    final attProvider =
+        Provider.of<AttendanceController>(context, listen: false);
 
     setState(() {
-      lastCheckIn = DateTime.now().toLocal().toString().split('.')[0];
+      attProvider.lastCheckIn =
+          DateTime.now().toLocal().toString().split('.')[0];
     });
   }
 
@@ -82,16 +84,22 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
     }
 
     await checkInController.handleCheckOut(context);
+    final attProvider =
+        Provider.of<AttendanceController>(context, listen: false);
 
     // Store check-out timestamp
     setState(() {
-      lastCheckOut = DateTime.now().toLocal().toString().split('.')[0];
+      attProvider.lastCheckOut =
+          DateTime.now().toLocal().toString().split('.')[0];
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final attProvider =
+        Provider.of<AttendanceController>(context, listen: false);
+    attProvider.getAttendance();
     return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
       appBar: AppBar(
@@ -214,9 +222,10 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          lastCheckIn,
+                          DateFormat('yyyy-MM-dd HH:mm:ss')
+                              .format(DateTime.parse(attProvider.lastCheckIn)),
                           style: const TextStyle(
-                              fontWeight: FontWeight.w400, fontSize: 20),
+                              fontWeight: FontWeight.w400, fontSize: 16),
                         )
                       ],
                     ),
@@ -231,9 +240,10 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          lastCheckOut,
+                          DateFormat('yyyy-MM-dd HH:mm:ss')
+                              .format(DateTime.parse(attProvider.lastCheckOut)),
                           style: const TextStyle(
-                              fontWeight: FontWeight.w400, fontSize: 20),
+                              fontWeight: FontWeight.w400, fontSize: 16),
                         )
                       ],
                     ),

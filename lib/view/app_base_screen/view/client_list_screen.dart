@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -132,6 +134,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
   }
 
   Widget _buildClientListItem(Client client) {
+    // log("client id : ${client.id}");
     return GestureDetector(
       onTap: () {
         Navigator.push(
