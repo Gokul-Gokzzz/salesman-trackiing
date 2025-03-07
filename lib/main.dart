@@ -19,7 +19,9 @@ import 'package:salesman/controller/leader_board_controller.dart';
 import 'package:salesman/controller/meeting_controller.dart';
 import 'package:salesman/controller/navigation_controller.dart';
 import 'package:salesman/controller/note_controller.dart';
+import 'package:salesman/controller/redeme_request_controller.dart';
 import 'package:salesman/controller/reward_controller.dart';
+import 'package:salesman/controller/reward_history_controller.dart';
 import 'package:salesman/controller/take_order_provider.dart';
 import 'package:salesman/view/app_base_screen/view/client_list_screen.dart';
 import 'package:salesman/view/app_base_screen/view/splash_screen.dart';
@@ -53,6 +55,8 @@ void main() async {
         ChangeNotifierProvider(create: (context) => GetMeetingController()),
         ChangeNotifierProvider(create: (context) => LeaderboardController()),
         ChangeNotifierProvider(create: (context) => RewardProvider()),
+        ChangeNotifierProvider(create: (context) => RedemptionProvider()),
+        ChangeNotifierProvider(create: (context) => RewardHistoryProvider()),
       ],
       child: const MyApp(),
     ),

@@ -1,10 +1,14 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:salesman/controller/redeme_request_controller.dart';
 import 'package:salesman/controller/reward_controller.dart';
 import 'package:salesman/model/reward_model.dart';
 import 'package:salesman/view/app_base_screen/view/redeemed_rewards.dart';
 import 'package:salesman/view/app_base_screen/view/rewaed_details_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RewardsScreen extends StatelessWidget {
   const RewardsScreen({super.key});
@@ -213,7 +217,26 @@ class RewardCard extends StatelessWidget {
                   elevation: 0,
                   backgroundColor: const Color(0XFF094497),
                 ),
-                onPressed: () {},
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  String? userId =
+                      prefs.getString('id'); // Fetch userId (Salesman ID)
+
+                  if (userId == null || userId.isEmpty) {
+                    log("❌ User ID is null or empty!");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("User ID not found")),
+                    );
+                    return;
+                  }
+
+                  log("✅ User ID: $userId");
+
+                  final provider =
+                      Provider.of<RedemptionProvider>(context, listen: false);
+                  provider.redeemReward(userId,
+                      reward.id.toString()); // Reward ID is hardcoded for now
+                },
                 child: const Text(
                   "Redeem",
                   style: TextStyle(color: Colors.white, fontSize: 11),

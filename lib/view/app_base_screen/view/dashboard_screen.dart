@@ -57,7 +57,12 @@ class DashBoardScreen extends StatelessWidget {
                 height: 33,
                 width: 33,
               ),
-            )
+            ),
+            IconButton(
+                onPressed: () {
+                  authProvider.logout();
+                },
+                icon: Icon(Icons.logout)),
           ],
           title: const SizedBox(
               width: 63,
@@ -117,11 +122,11 @@ class DashBoardScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      IconButton(
-                          onPressed: () {
-                            authProvider.logout();
-                          },
-                          icon: Icon(Icons.logout)),
+                      // IconButton(
+                      //     onPressed: () {
+                      //       authProvider.logout();
+                      //     },
+                      //     icon: Icon(Icons.logout)),
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
