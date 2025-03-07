@@ -37,7 +37,7 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
 
     log("✅ Salesman ID: $salesmanId");
     // Replace 'yourSalesmanId' with the actual salesman ID you want to fetch
-    await attendanceController.getAttendance(salesmanId);
+    await attendanceController.getAttendance();
   }
 
   @override
