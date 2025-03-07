@@ -13,9 +13,9 @@ class AddNoteController with ChangeNotifier {
     notifyListeners();
 
     AddNoteModel noteModel = AddNoteModel(
-      salesman: salesman,
+      salesman: note,
       title: title,
-      note: note,
+      note: salesman,
     );
 
     bool success = await _addNoteService.addNote(noteModel);

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:salesman/controller/collection_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddCollectionScreen extends StatefulWidget {
   const AddCollectionScreen({super.key});
@@ -13,6 +16,7 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
   final TextEditingController _clientController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   DateTime? _selectedDate;
+  bool _isSubmitting = false;
 
   void _pickDate() async {
     DateTime? pickedDate = await showDatePicker(
@@ -28,8 +32,62 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
     }
   }
 
-  void _submitCollection() {
-    // Handle collection submission logic here
+  Future<void> _submitCollection() async {
+    if (_clientController.text.isEmpty ||
+        _amountController.text.isEmpty ||
+        _selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all fields")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    final prefs = await SharedPreferences.getInstance();
+    String? salesmanId = prefs.getString('id');
+
+    if (salesmanId == null || salesmanId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Salesman ID not found")),
+      );
+      setState(() {
+        _isSubmitting = false;
+      });
+      return;
+    }
+
+    final collectionData = {
+      "client": _clientController.text,
+      "salesman": salesmanId,
+      "amount": int.parse(_amountController.text),
+      "date": _selectedDate!.toUtc().toIso8601String(),
+    };
+
+    bool success = await Provider.of<CollectionProvider>(context, listen: false)
+        .addCollection(collectionData);
+
+    setState(() {
+      _isSubmitting = false;
+    });
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Collection added successfully!")),
+      );
+
+      // Delay navigation to allow snackbar to be visible
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to add collection")),
+      );
+    }
   }
 
   @override
@@ -132,12 +190,12 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _submitCollection,
+                        onPressed: _isSubmitting ? null : _submitCollection,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0XFF094497),
                           elevation: 0,
                         ),
-                        child: const Text(
+                        child: Text(
                           "Submit Collection",
                           style: TextStyle(
                             color: Colors.white,

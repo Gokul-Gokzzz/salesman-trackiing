@@ -1,27 +1,42 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
-import '../model/collection_model.dart';
+import 'package:flutter/material.dart';
+import 'package:salesman/model/collection_model.dart';
 
 class CollectionService {
   final Dio _dio = Dio();
-  final String _baseUrl =
-      'https://salesman-tracking-app.onrender.com/api/collections';
+  final String baseUrl = "https://salesman-tracking-app.onrender.com/api";
 
-  Future<CollectionModel?> fetchCollections() async {
+  Future<List<GetCollection>> fetchCollections(String salesmanId) async {
     try {
-      Response response = await _dio.get(_baseUrl);
+      final response =
+          await _dio.get('$baseUrl/collections/salesman/$salesmanId');
 
       if (response.statusCode == 200) {
-        log("Collection data fetched successfully.");
-        return CollectionModel.fromJson(response.data);
+        List<dynamic> data = response.data['collections'];
+        return data.map((json) => GetCollection.fromJson(json)).toList();
       } else {
-        log("Failed to fetch collections. Status Code: ${response.statusCode}");
-        return null;
+        throw Exception("Failed to fetch collections");
       }
     } catch (e) {
-      log("Error fetching collections: $e");
-      return null;
+      throw Exception("Error: $e");
+    }
+  }
+
+  Future<bool> addCollection(Map<String, dynamic> collectionData) async {
+    try {
+      Response response = await _dio.post(
+        'https://salesman-tracking-app.onrender.com/api/collections',
+        data: collectionData,
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        throw Exception("Failed to add collection");
+      }
+    } catch (e) {
+      debugPrint("❌ Error adding collection: $e");
+      return false;
     }
   }
 }

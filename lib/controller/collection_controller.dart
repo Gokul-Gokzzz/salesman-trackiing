@@ -2,21 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:salesman/model/collection_model.dart';
 import 'package:salesman/service/collection_service.dart';
 
-class CollectionProvider extends ChangeNotifier {
+class CollectionProvider with ChangeNotifier {
   final CollectionService _service = CollectionService();
-  CollectionModel? _collectionModel;
-  bool _isLoading = false;
+  List<GetCollection> collections = [];
+  bool isLoading = false;
 
-  CollectionModel? get collectionModel => _collectionModel;
-  bool get isLoading => _isLoading;
-
-  Future<void> fetchCollections() async {
-    _isLoading = true;
+  Future<void> getCollections(String salesmanId) async {
+    isLoading = true;
     notifyListeners();
 
-    _collectionModel = await _service.fetchCollections();
+    try {
+      collections = await _service.fetchCollections(salesmanId);
+    } catch (e) {
+      debugPrint("Error fetching collections: $e");
+    }
 
-    _isLoading = false;
+    isLoading = false;
     notifyListeners();
+  }
+
+  addCollection(Map<String, dynamic> collectionData) async {
+    bool success = await _service.addCollection(collectionData);
+    if (success) {
+      getCollections(collectionData['salesman']); // Refresh list
+    }
   }
 }

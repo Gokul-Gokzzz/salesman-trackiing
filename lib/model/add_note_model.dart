@@ -33,6 +33,6 @@ class AddNoteModel {
         "salesman": salesman,
         "title": title,
         "note": note,
-        "_id": id,
+        // "_id": id,
       };
 }

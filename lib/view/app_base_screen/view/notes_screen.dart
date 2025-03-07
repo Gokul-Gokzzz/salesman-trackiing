@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +8,7 @@ import 'package:salesman/controller/auth_conroller.dart';
 import 'package:salesman/controller/note_controller.dart';
 import 'package:salesman/model/add_note_model.dart';
 import 'package:salesman/model/note_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -25,7 +28,7 @@ class _NotesScreenState extends State<NotesScreen> {
   Widget build(BuildContext context) {
     TextEditingController titleController = TextEditingController();
     TextEditingController noteController = TextEditingController();
-    final addController = Provider.of<AuthProvider>(context, listen: false);
+    // final addController = Provider.of<AuthProvider>(context, listen: false);
 
     return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
@@ -197,47 +200,68 @@ class _NotesScreenState extends State<NotesScreen> {
                                   String title = titleController.text.trim();
                                   String note = noteController.text.trim();
 
-                                  if (title.isNotEmpty && note.isNotEmpty) {
-                                    try {
-                                      bool success =
-                                          await Provider.of<AddNoteController>(
-                                        context,
-                                        listen: false,
-                                      ).addNote(
-                                              note,
-                                              title,
-                                              addController
-                                                  .loginModel!.user!.id!);
-
-                                      if (success) {
-                                        // Refresh notes after adding
-                                        Provider.of<NoteController>(context,
-                                                listen: false)
-                                            .getNotes();
-                                        titleController.clear();
-                                        noteController.clear();
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                              content: Text(
-                                                  'Note added successfully!')),
-                                        );
-                                      } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                              content:
-                                                  Text('Failed to add note!')),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      debugPrint("Error adding note: $e");
-                                    }
-                                  } else {
+                                  if (title.isEmpty || note.isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                           content: Text(
                                               'Title and Note cannot be empty!')),
+                                    );
+                                    return;
+                                  }
+
+                                  try {
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    String? salesmanId = prefs.getString('id');
+
+                                    if (salesmanId == null ||
+                                        salesmanId.isEmpty) {
+                                      log("❌ Salesman ID is null or empty!");
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content:
+                                                Text("Salesman ID not found")),
+                                      );
+                                      return;
+                                    }
+
+                                    log("✅ Salesman ID: $salesmanId");
+
+                                    bool success =
+                                        await Provider.of<AddNoteController>(
+                                      context,
+                                      listen: false,
+                                    ).addNote(note, title, salesmanId);
+
+                                    if (success) {
+                                      // Refresh notes after adding
+                                      Provider.of<NoteController>(context,
+                                              listen: false)
+                                          .getNotes();
+                                      titleController.clear();
+                                      noteController.clear();
+
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Note added successfully!')),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content:
+                                                Text('Failed to add note!')),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    debugPrint("Error adding note: $e");
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'An error occurred while adding the note!')),
                                     );
                                   }
                                 },
@@ -354,7 +378,7 @@ class NoteCard extends StatelessWidget {
               const SizedBox(width: 10),
               InkWell(
                 onTap: () {
-                  provider.deleteNote(note.id.toString());
+                  // provider.deleteNote(note.id.toString());
                 },
                 child: SvgPicture.asset(
                   'assets/images/material-symbols_delete-outline.svg',

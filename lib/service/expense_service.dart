@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ExpenseService {
   final Dio _dio = Dio();
   final String _baseUrl =
-      'https://salesman-tracking-app.onrender.com/api/expense/salesman  ';
+      'https://salesman-tracking-app.onrender.com/api/expense/salesman';
 
   Future<GetExpenseModel?> fetchExpenses(String salesmanId) async {
     try {
