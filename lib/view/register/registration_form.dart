@@ -117,7 +117,7 @@ class _RegisterFormState extends State<RegisterForm> {
           children: [
             const SizedBox(height: 50),
             _buildTextField(
-                controller: _fullNameController, hintText: "Full Name"),
+                controller: _fullNameController, hintText: "User Name"),
             const SizedBox(height: 20),
             _buildTextField(controller: _emailController, hintText: "Email"),
             const SizedBox(height: 20),

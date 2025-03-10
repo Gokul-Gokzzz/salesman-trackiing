@@ -21,6 +21,7 @@ import 'package:salesman/controller/leader_board_controller.dart';
 import 'package:salesman/controller/meeting_controller.dart';
 import 'package:salesman/controller/navigation_controller.dart';
 import 'package:salesman/controller/note_controller.dart';
+import 'package:salesman/controller/order_summery_controller.dart';
 import 'package:salesman/controller/product_controller.dart';
 import 'package:salesman/controller/redeme_request_controller.dart';
 import 'package:salesman/controller/reward_controller.dart';
@@ -63,6 +64,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CollectionDetailsProvider()),
         ChangeNotifierProvider(create: (_) => ProductController()),
         ChangeNotifierProvider(create: (_) => OrderController()),
+        ChangeNotifierProvider(create: (_) => OrderSummaryController()),
       ],
       child: const MyApp(),
     ),

@@ -63,4 +63,35 @@ class GetMeetingService {
       return null;
     }
   }
+
+  Future<bool> editMeeting(
+      String meetingId, Map<String, dynamic> updatedData) async {
+    try {
+      final response = await _dio.put(
+        'https://salesman-tracking-app.onrender.com/api/meeting/$meetingId',
+        data: updatedData,
+      );
+      if (response.statusCode == 200) {
+        log("✅ Meeting edited successfully");
+        return true;
+      }
+    } catch (e) {
+      log("❌ Error editing meeting: $e");
+    }
+    return false;
+  }
+
+  Future<bool> deleteMeeting(String meetingId) async {
+    try {
+      final response = await _dio.delete(
+          'https://salesman-tracking-app.onrender.com/api/meeting/$meetingId');
+      if (response.statusCode == 200) {
+        log("✅ Meeting deleted successfully");
+        return true;
+      }
+    } catch (e) {
+      log("❌ Error deleting meeting: $e");
+    }
+    return false;
+  }
 }

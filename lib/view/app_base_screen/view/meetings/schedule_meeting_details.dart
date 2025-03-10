@@ -19,8 +19,95 @@ class _ScheduledMeetingDetailsState extends State<ScheduledMeetingDetails> {
   Future<void> _fetchMeetingDetails() async {
     log("✅ Fetching details for Meeting ID: ${widget.meetingId}");
     await _meetingDetailsController.getMeetingDetails(widget.meetingId);
+  }
 
-    // log("🛠 Meeting Details Response: ${_meetingDetailsController.meetingDetails}");
+  Future<void> _deleteMeeting() async {
+    bool confirmDelete = await _showDeleteConfirmationDialog();
+    if (confirmDelete) {
+      await _meetingDetailsController.removeMeeting(widget.meetingId);
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  Future<bool> _showDeleteConfirmationDialog() async {
+    return await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Confirm Delete"),
+            content:
+                const Text("Are you sure you want to delete this meeting?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child:
+                    const Text("Delete", style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> _editMeetingDialog() async {
+    final meeting = _meetingDetailsController.meetingDetails;
+    if (meeting == null) return;
+
+    TextEditingController locationController =
+        TextEditingController(text: meeting.locationDetails);
+    TextEditingController agendaController =
+        TextEditingController(text: meeting.agenda);
+    TextEditingController dateController =
+        TextEditingController(text: meeting.dateTime.toString());
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Edit Meeting"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: locationController,
+              decoration: const InputDecoration(labelText: "Location"),
+            ),
+            TextField(
+              controller: agendaController,
+              decoration: const InputDecoration(labelText: "Agenda"),
+            ),
+            TextField(
+              controller: dateController,
+              decoration: const InputDecoration(labelText: "Date"),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              await _meetingDetailsController.updateMeeting(
+                widget.meetingId,
+                {
+                  "locationDetails": locationController.text,
+                  "agenda": agendaController.text,
+                  "date": dateController.text,
+                },
+              );
+              if (mounted) Navigator.pop(context);
+            },
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -35,13 +122,12 @@ class _ScheduledMeetingDetailsState extends State<ScheduledMeetingDetails> {
   @override
   Widget build(BuildContext context) {
     final meetingDetails = context.watch<GetMeetingController>();
-    final isLoading = context.watch<GetMeetingController>().isLoading;
+    final isLoading = meetingDetails.isLoading;
 
     return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
       body: Column(
         children: [
-          // Header Section
           Stack(
             children: [
               Container(
@@ -78,56 +164,55 @@ class _ScheduledMeetingDetailsState extends State<ScheduledMeetingDetails> {
               ),
             ],
           ),
-
-          // Content Section
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 13.0),
-              child:
-                  // isLoading
-                  //     ? const Center(child: CircularProgressIndicator())
-                  //     : meetingDetails == null
-                  //         ? const Center(
-                  //             child: Text('Meeting details not available.'))
-                  //         : ListView(
-                  //             padding: EdgeInsets.zero,
-                  //             children: [
-                  //               //   _buildDetailItem(
-                  //               //       "Date",
-                  //               //       meetingDetails.meetingDetails!.dateTime
-                  //               // .toString()),
-                  //               _buildDetailItem("Location",
-                  //                   meetingDetails.meetingDetails!.locationDetails),
-                  //               _buildDetailItem("Agenda",
-                  //                   meetingDetails.meetingDetails!.agenda),
-                  //               _buildDetailItem("Participants",
-                  //                   meetingDetails.meetingDetails!.locationType),
-                  //               _buildDetailItem(
-                  //                   "Notes", meetingDetails.meetingDetails!.notes),
-                  //             ],
-                  //           ),
-                  isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : meetingDetails == null
-                          ? const Center(
-                              child: Text('Meeting details not available.'))
-                          : ListView(
-                              padding: EdgeInsets.zero,
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : meetingDetails.meetingDetails == null
+                      ? const Center(
+                          child: Text('Meeting details not available.'))
+                      : ListView(
+                          padding: EdgeInsets.zero,
+                          children: [
+                            _buildDetailItem("Location Detailes",
+                                meetingDetails.meetingDetails?.locationDetails),
+                            _buildDetailItem("Agenda",
+                                meetingDetails.meetingDetails?.agenda),
+                            _buildDetailItem(
+                                "Date",
+                                meetingDetails.meetingDetails?.dateTime
+                                    .toString()),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildDetailItem(
-                                    "Location",
-                                    meetingDetails
-                                        .meetingDetails?.locationDetails),
-                                _buildDetailItem("Agenda",
-                                    meetingDetails.meetingDetails?.agenda),
-                                _buildDetailItem(
-                                    "Participants",
-                                    meetingDetails
-                                        .meetingDetails?.locationType),
-                                _buildDetailItem("Notes",
-                                    meetingDetails.meetingDetails?.notes),
+                                ElevatedButton.icon(
+                                  onPressed: _editMeetingDialog,
+                                  icon: const Icon(Icons.edit,
+                                      color: Colors.white),
+                                  label: const Text("Edit"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 30, vertical: 12),
+                                  ),
+                                ),
+                                ElevatedButton.icon(
+                                  onPressed: _deleteMeeting,
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.white),
+                                  label: const Text("Delete"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 30, vertical: 12),
+                                  ),
+                                ),
                               ],
                             ),
+                          ],
+                        ),
             ),
           ),
         ],

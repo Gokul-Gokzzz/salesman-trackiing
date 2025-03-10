@@ -1,34 +1,51 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
-import 'package:salesman/controller/product_controller.dart';
-import 'package:salesman/controller/take_order_provider.dart';
-import 'package:salesman/model/product_model.dart';
-import 'package:salesman/view/app_base_screen/view/order/order_summery_screen.dart';
-import 'package:salesman/view/app_base_screen/view/order/take_order_screen.dart'; // Import TakeOrderScreen
+import 'dart:developer';
 
-class ProductListScreen extends StatefulWidget {
-  const ProductListScreen({Key? key}) : super(key: key);
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:salesman/controller/order_summery_controller.dart';
+import 'package:salesman/model/order/order_sumery_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class OrderSummaryScreen extends StatefulWidget {
+  const OrderSummaryScreen({Key? key}) : super(key: key);
 
   @override
-  State<ProductListScreen> createState() => _ProductListScreenState();
+  State<OrderSummaryScreen> createState() => _OrderSummaryScreenState();
 }
 
-class _ProductListScreenState extends State<ProductListScreen> {
+class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProductController>(context, listen: false).fetchProducts();
+      _loadOrderSummary();
     });
+  }
+
+  Future<void> _loadOrderSummary() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? salesmanId =
+        prefs.getString('id'); // Retrieve ID from SharedPreferences
+
+    if (salesmanId == null || salesmanId.isEmpty) {
+      log("❌ Salesman ID is null or empty!");
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Salesman ID not found")));
+      return;
+    }
+
+    log("✅ Salesman ID: $salesmanId");
+
+    Provider.of<OrderSummaryController>(context, listen: false)
+        .loadOrders(salesmanId);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
-      body: Consumer<ProductController>(
-        builder: (context, productController, child) {
+      body: Consumer<OrderSummaryController>(
+        builder: (context, orderController, child) {
           return SingleChildScrollView(
             child: Column(
               children: [
@@ -51,7 +68,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: 20.0),
                           child: Text(
-                            "Product List",
+                            "Order Summary",
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 35,
@@ -69,7 +86,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         onTap: () {
                           Navigator.pop(context);
                         },
-                        child: SvgPicture.asset("assets/images/backbutton.svg"),
+                        child:
+                            const Icon(Icons.arrow_back, color: Colors.white),
                       ),
                     )
                   ],
@@ -79,33 +97,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Available Products",
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.w600),
-                          ),
-                          TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        OrderSummaryScreen(), // Replace with your OrderSummaryScreen
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                "Order Summary",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0XFF094497),
-                                ),
-                              ))
-                        ],
+                      const Text(
+                        "Recent Orders",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       Container(
                         height: 3,
@@ -116,25 +113,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         ),
                       ),
                       const SizedBox(height: 30.75),
-                      productController.isLoading
+                      orderController.isLoading
                           ? const Center(child: CircularProgressIndicator())
-                          : productController.products.isEmpty
+                          : orderController.orders.isEmpty
                               ? const Center(
                                   child: Padding(
                                     padding: EdgeInsets.only(top: 20),
                                     child: Text(
-                                      "No products available!",
+                                      "No orders available!",
                                       style: TextStyle(fontSize: 16),
                                     ),
                                   ),
                                 )
                               : Column(
-                                  children:
-                                      productController.products.map((product) {
-                                    return ProductCard(
-                                      product:
-                                          product, // Pass the entire product object
-                                    );
+                                  children: orderController.orders.map((order) {
+                                    return OrderCard(order: order);
                                   }).toList(),
                                 ),
                       const SizedBox(height: 50),
@@ -150,12 +143,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 }
 
-class ProductCard extends StatelessWidget {
-  final Product product; // Receive the entire product object
+class OrderCard extends StatelessWidget {
+  final OrderSummary order;
 
-  const ProductCard({
+  const OrderCard({
     Key? key,
-    required this.product,
+    required this.order,
   }) : super(key: key);
 
   @override
@@ -179,35 +172,36 @@ class ProductCard extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 10),
-            _buildInfoRow("Product Name:", product.name ?? 'Unnamed Product'),
+            // _buildInfoRow("Order ID:", order.orderId.toString()),
             const Divider(),
-            _buildInfoRow("Price:", "₹${product.price}"),
+            _buildInfoRow("Customer:", order.client.name ?? "Unknown"),
             const Divider(),
-            _buildInfoRow("Stock:", product.stock.toString()),
+            _buildInfoRow("Total Amount:", "₹${order.totalAmount}"),
+            const Divider(),
+            _buildInfoRow("Status:", order.status),
             const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                _orderProduct(
-                    context, product); // Pass the product to the order function
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0XFF094497),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 20),
-                child: Text(
-                  "Order Now",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+            // ElevatedButton(
+            //   onPressed: () {
+            //     // Handle order details view
+            //   },
+            //   style: ElevatedButton.styleFrom(
+            //     backgroundColor: const Color(0XFF094497),
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(5),
+            //     ),
+            //   ),
+            //   child: const Padding(
+            //     padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 20),
+            //     child: Text(
+            //       "View Details",
+            //       style: TextStyle(
+            //         fontSize: 16,
+            //         fontWeight: FontWeight.w600,
+            //         color: Colors.white,
+            //       ),
+            //     ),
+            //   ),
+            // ),
             const SizedBox(height: 20),
           ],
         ),
@@ -234,16 +228,6 @@ class ProductCard extends StatelessWidget {
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
         ],
-      ),
-    );
-  }
-
-  void _orderProduct(BuildContext context, Product product) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            TakeOrderScreen(orderedProduct: product), // Pass the product
       ),
     );
   }

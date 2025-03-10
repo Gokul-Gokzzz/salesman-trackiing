@@ -321,8 +321,8 @@ class LeaderBoard extends StatelessWidget {
     );
   }
 
-  // Info Card (Rank & Points)
-  // Widget _infoCard(String text, String iconPath) {
+  // Profile Card
+  // Widget _profileCard(String name) {
   //   return Expanded(
   //     child: Container(
   //       padding: const EdgeInsets.all(12),
@@ -334,11 +334,10 @@ class LeaderBoard extends StatelessWidget {
   //       ),
   //       child: Column(
   //         children: [
-  //           SvgPicture.asset(iconPath, height: 30),
+  //           const Icon(Icons.person, size: 40, color: Colors.black),
   //           const SizedBox(height: 5),
   //           Text(
-  //             text,
-  //             textAlign: TextAlign.center,
+  //             "Name: $name",
   //             style: const TextStyle(
   //                 fontWeight: FontWeight.bold,
   //                 fontSize: 14,
@@ -349,32 +348,4 @@ class LeaderBoard extends StatelessWidget {
   //     ),
   //   );
   // }
-
-  // Profile Card
-  Widget _profileCard(String name) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.blue, width: 1.5),
-        ),
-        child: Column(
-          children: [
-            const Icon(Icons.person, size: 40, color: Colors.black),
-            const SizedBox(height: 5),
-            Text(
-              "Name: $name",
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.black),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

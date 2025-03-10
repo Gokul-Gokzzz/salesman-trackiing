@@ -35,4 +35,22 @@ class GetMeetingController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> updateMeeting(
+      String meetingId, Map<String, dynamic> updatedData) async {
+    bool success = await _meetingService.editMeeting(meetingId, updatedData);
+    if (success) {
+      await getMeetingDetails(meetingId); // Refresh data
+    }
+    return success;
+  }
+
+  Future<bool> removeMeeting(String meetingId) async {
+    bool success = await _meetingService.deleteMeeting(meetingId);
+    if (success) {
+      meetingDetails = null;
+      notifyListeners();
+    }
+    return success;
+  }
 }

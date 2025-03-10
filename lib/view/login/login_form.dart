@@ -17,6 +17,7 @@ class LoginFormWidget extends StatefulWidget {
 class _LoginFormWidgetState extends State<LoginFormWidget> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
   @override
   Widget build(BuildContext context) {
     final loginProvider = Provider.of<AuthProvider>(context);
@@ -36,31 +37,42 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                     const SizedBox(
                       height: 20,
                     ),
-                    _buildTextField("Username, Mobile Number",
-                        controller: _nameController),
+                    _buildTextField("Username", controller: _nameController),
                     const SizedBox(
                       height: 18,
                     ),
                     _buildTextField("Password",
-                        // isPassword: true,
-                        controller: _passwordController),
+                        isPassword: _obscurePassword,
+                        controller: _passwordController,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        )),
                     const SizedBox(
                       height: 18,
                     ),
-                    InkWell(
-                      onTap: () {
-                        context
-                            .read<LoginScreenProvider>()
-                            .showForgotPassword();
-                      },
-                      child: const Text(
-                        "Forgot password?",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Color(0XFFFA4A0C),
-                        ),
-                      ),
-                    ),
+                    // InkWell(
+                    //   onTap: () {
+                    //     context
+                    //         .read<LoginScreenProvider>()
+                    //         .showForgotPassword();
+                    //   },
+                    //   child: const Text(
+                    //     "Forgot password?",
+                    //     style: TextStyle(
+                    //       fontWeight: FontWeight.w600,
+                    //       color: Color(0XFFFA4A0C),
+                    //     ),
+                    //   ),
+                    // ),
                     const SizedBox(
                       height: 25,
                     ),
@@ -246,7 +258,9 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
 
   // Reusable TextField Widget
   Widget _buildTextField(String hintText,
-      {bool isPassword = false, required TextEditingController controller}) {
+      {bool isPassword = false,
+      required TextEditingController controller,
+      Widget? suffixIcon}) {
     return TextField(
       controller: controller,
       obscureText: isPassword,
@@ -261,6 +275,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10.0),
             borderSide: BorderSide.none),
+        suffixIcon: suffixIcon,
       ),
     );
   }
