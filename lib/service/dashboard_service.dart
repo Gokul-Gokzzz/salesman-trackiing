@@ -2,21 +2,24 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:salesman/model/dashboard_model.dart';
 
-class DashboardService {
+class UserMetricsService {
   final Dio _dio = Dio();
 
-  Future<DashoardModel?> fetchDashboardMetrics(String salesmanId) async {
+  Future<UserMetricsModel?> fetchUserMetrics(String userId) async {
     try {
-      final response = await _dio.get(
-        'https://salesman-tracking-app.onrender.com/api/user/metrics/$salesmanId',
-      );
+      String url =
+          "https://salesman-tracking-app.onrender.com/api/user/metrics/$userId";
+      Response response = await _dio.get(url);
 
-      if (response.statusCode == 200 && response.data != null) {
-        return DashoardModel.fromJson(response.data);
+      if (response.statusCode == 200) {
+        return UserMetricsModel.fromJson(response.data);
+      } else {
+        log("❌ Error: ${response.statusCode}");
+        return null;
       }
     } catch (e) {
-      log("❌ Error fetching dashboard metrics: $e");
+      log("❌ API Error: $e");
+      return null;
     }
-    return null;
   }
 }

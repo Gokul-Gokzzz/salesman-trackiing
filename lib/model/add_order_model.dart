@@ -1,13 +1,13 @@
 class Order {
   final String salesmanId;
-  final String clientId;
+  final String clientName;
   final List<ProductOrder> products;
   final double totalAmount;
   final String status;
 
   Order({
     required this.salesmanId,
-    required this.clientId,
+    required this.clientName,
     required this.products,
     required this.totalAmount,
     required this.status,
@@ -16,7 +16,7 @@ class Order {
   Map<String, dynamic> toJson() {
     return {
       "salesmanId": salesmanId,
-      "clientId": clientId,
+      "clientName": clientName,
       "products": products.map((product) => product.toJson()).toList(),
       "totalAmount": totalAmount,
       "status": status,

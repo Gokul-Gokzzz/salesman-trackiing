@@ -47,7 +47,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NoteController()),
         ChangeNotifierProvider(create: (_) => ExpenseController()),
         ChangeNotifierProvider(create: (_) => CollectionProvider()),
-        ChangeNotifierProvider(create: (_) => DashboardController()),
+        ChangeNotifierProvider(create: (_) => UserMetricsController()),
         ChangeNotifierProvider(create: (context) => AttendanceController()),
         ChangeNotifierProvider(create: (_) => AddClientProvider()),
         ChangeNotifierProvider(create: (_) => ClientProvider()),

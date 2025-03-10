@@ -42,55 +42,82 @@ class _TakeOrderScreenState extends State<TakeOrderScreen> {
 //     });
 //   }
 
-  void _submitOrder(BuildContext context) async {
-    final orderController =
-        Provider.of<OrderController>(context, listen: false);
-    final clientController =
-        Provider.of<ClientProvider>(context, listen: false);
-    final prefs = await SharedPreferences.getInstance();
-    String? salesmanId =
-        prefs.getString('id'); // Retrieve ID from SharedPreferences
+  void _submitOrder(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController clientNameController = TextEditingController();
 
-    if (salesmanId == null || salesmanId.isEmpty) {
-      log("❌ Salesman ID is null or empty!");
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Salesman ID not found")));
-      return;
-    }
+        return AlertDialog(
+          title: Text("Enter Client Name"),
+          content: TextField(
+            controller: clientNameController,
+            decoration: InputDecoration(
+              hintText: "Client Name",
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                String clientName = clientNameController.text.trim();
+                if (clientName.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Please enter a client name")),
+                  );
+                  return;
+                }
 
-    log("✅ Salesman ID: $salesmanId");
+                final orderController =
+                    Provider.of<OrderController>(context, listen: false);
+                final prefs = await SharedPreferences.getInstance();
+                String? salesmanId = prefs.getString('id');
 
-    String? clientId = clientController.selectedClient?.id.toString();
+                if (salesmanId == null || salesmanId.isEmpty) {
+                  log("❌ Salesman ID is null or empty!");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Salesman ID not found")),
+                  );
+                  return;
+                }
 
-    if (clientId == null || clientId.isEmpty) {
-      log("❌ Client ID is null or empty!");
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Client ID not found")));
-      return;
-    }
+                log("✅ Salesman ID: $salesmanId");
 
-    log("✅ Client ID: $clientId");
+                Order order = Order(
+                  salesmanId: salesmanId,
+                  clientName: clientName, // Use the entered client name
+                  products: [
+                    ProductOrder(
+                      productId: widget.orderedProduct.id ?? "",
+                      quantity: quantity,
+                    )
+                  ],
+                  totalAmount: totalPrice,
+                  status: "pending",
+                );
 
-    Order order = Order(
-      salesmanId: salesmanId,
-      clientId: clientId,
-      products: [
-        ProductOrder(
-          productId: widget.orderedProduct.id ?? "",
-          quantity: quantity,
-        )
-      ],
-      totalAmount: totalPrice,
-      status: "pending",
+                await orderController.createOrder(order);
+
+                if (orderController.message.isNotEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(orderController.message)),
+                  );
+                }
+
+                Navigator.pop(context); // Close the dialog after submission
+              },
+              child: Text("Submit"),
+            ),
+          ],
+        );
+      },
     );
-
-    await orderController.createOrder(order);
-
-    if (orderController.message.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(orderController.message)),
-      );
-    }
   }
 
   @override
