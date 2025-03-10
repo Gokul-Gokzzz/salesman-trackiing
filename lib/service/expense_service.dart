@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:salesman/model/add_expence_model.dart';
 import 'package:salesman/model/expense_model.dart';
@@ -31,7 +30,9 @@ class ExpenseService {
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('auth_token'); // Retrieve saved token
+      String? token = prefs.getString('auth_token');
+
+      log("🔑 Retrieved Token (addExpense): $token"); // Log the token
 
       if (token == null) {
         log("⚠️ No auth token found. User might not be logged in.");
@@ -49,7 +50,7 @@ class ExpenseService {
         },
         options: Options(
           headers: {
-            "Authorization": "Bearer $token", // Use dynamic token
+            "Authorization": "Bearer $token",
             "Content-Type": "application/json",
           },
         ),
@@ -59,25 +60,94 @@ class ExpenseService {
         return AddExpenseModel.fromJson(response.data);
       }
     } on DioException catch (e) {
-      log("Error adding expense: ${e.message}");
-      log("Error adding expense: ${e.response}");
+      log("❌ Error adding expense: ${e.message}");
+      log("❌ Response: ${e.response}");
     } catch (e) {
-      log("Error adding expense: $e");
+      log("❌ Unexpected error adding expense: $e");
     }
     return null;
   }
 
-//  Future<void> _saveUserData(Map<String, dynamic> data) async {
-//     final prefs = await SharedPreferences.getInstance();
-//     await prefs.setString('auth_token', data['token']);
-//     await prefs.setString('user_name', data['user']['name'] ?? '');
+  Future<GetExpenseModel?> getExpenseById(String expenseId) async {
+    try {
+      final response = await _dio.get(
+          "https://salesman-tracking-app.onrender.com/api/expense/getExpense/$expenseId");
 
-//     // Verify if data is saved properly
-//     log('✅ Saving Token: ${data['token']}');
-//     log('✅ Saving User Name: ${data['user']['name']}');
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+    } catch (e) {
+      log("❌ Error fetching expense: $e");
+    }
+    return null;
+  }
 
-//     // Retrieve immediately to check
-//     String? savedToken = prefs.getString('auth_token');
-//     log('🔎 Retrieved Token: $savedToken');
-//   }
+  Future<bool> updateExpense(
+      String expenseId, Map<String, dynamic> data) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('auth_token');
+
+      log("🔑 Retrieved Token (updateExpense): $token"); // Log the token
+
+      if (token == null || token.isEmpty) {
+        log("❌ No authentication token found.");
+        return false;
+      }
+
+      log("Sending updateExpense request with token: $token"); // Log before request
+
+      Response response = await _dio.put(
+        "https://salesman-tracking-app.onrender.com/api/expense/$expenseId",
+        data: data,
+        options: Options(
+          headers: {
+            "Authorization": "Bearer $token",
+            "Content-Type": "application/json",
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        log("✅ Expense updated successfully");
+        return true;
+      } else {
+        log("⚠️ Failed to update expense: ${response.data}");
+        log("⚠️ Failed to update expense status code: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      log("❌ Error updating expense: $e");
+      return false;
+    }
+  }
+
+  Future<bool> deleteExpense(String expenseId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('auth_token');
+
+      log("🔑 Retrieved Token (deleteExpense): $token"); // Log the token
+
+      if (token == null) {
+        log("❌ No authentication token found.");
+        return false;
+      }
+
+      Response response = await _dio.delete(
+        "https://salesman-tracking-app.onrender.com/api/expense/$expenseId",
+        options: Options(
+          headers: {
+            "Authorization": "Bearer $token",
+            "Content-Type": "application/json",
+          },
+        ),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      log("❌ Error deleting expense: $e");
+      return false;
+    }
+  }
 }

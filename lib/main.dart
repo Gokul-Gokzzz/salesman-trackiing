@@ -6,24 +6,27 @@ import 'package:provider/provider.dart';
 import 'package:salesman/controller/add_client_form_controller.dart';
 import 'package:salesman/controller/add_client_meeting_details_controller.dart';
 import 'package:salesman/controller/add_note_controller.dart';
-import 'package:salesman/controller/attendence_controller.dart';
+import 'package:salesman/controller/add_order_controller.dart';
+import 'package:salesman/controller/attandence/attendence_controller.dart';
 import 'package:salesman/controller/auth_conroller.dart';
-import 'package:salesman/controller/collection_controller.dart';
+import 'package:salesman/controller/collections/collection_controller.dart';
+import 'package:salesman/controller/collection_details_controller.dart';
 import 'package:salesman/controller/dashboard_controller.dart';
 import 'package:salesman/controller/expense_controlelr.dart';
 import 'package:salesman/controller/fetch_meeting_controller.dart';
 import 'package:salesman/controller/field_staff_controller.dart';
 import 'package:salesman/controller/forgot_password_provider.dart';
-import 'package:salesman/controller/get_client_controller.dart';
+import 'package:salesman/controller/client/get_client_controller.dart';
 import 'package:salesman/controller/leader_board_controller.dart';
 import 'package:salesman/controller/meeting_controller.dart';
 import 'package:salesman/controller/navigation_controller.dart';
 import 'package:salesman/controller/note_controller.dart';
+import 'package:salesman/controller/product_controller.dart';
 import 'package:salesman/controller/redeme_request_controller.dart';
 import 'package:salesman/controller/reward_controller.dart';
 import 'package:salesman/controller/reward_history_controller.dart';
 import 'package:salesman/controller/take_order_provider.dart';
-import 'package:salesman/view/app_base_screen/view/client_list_screen.dart';
+import 'package:salesman/view/app_base_screen/view/clients/client_list_screen.dart';
 import 'package:salesman/view/app_base_screen/view/splash_screen.dart';
 
 void main() async {
@@ -39,7 +42,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NavigationController()),
         ChangeNotifierProvider(create: (_) => FoodProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => MeetingController()),
+        // ChangeNotifierProvider(create: (_) => MeetingController()),
         ChangeNotifierProvider(create: (_) => NoteController()),
         ChangeNotifierProvider(create: (_) => NoteController()),
         ChangeNotifierProvider(create: (_) => ExpenseController()),
@@ -57,6 +60,9 @@ void main() async {
         ChangeNotifierProvider(create: (context) => RewardProvider()),
         ChangeNotifierProvider(create: (context) => RedemptionProvider()),
         ChangeNotifierProvider(create: (context) => RewardHistoryProvider()),
+        ChangeNotifierProvider(create: (_) => CollectionDetailsProvider()),
+        ChangeNotifierProvider(create: (_) => ProductController()),
+        ChangeNotifierProvider(create: (_) => OrderController()),
       ],
       child: const MyApp(),
     ),

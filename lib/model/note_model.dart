@@ -1,43 +1,45 @@
-// To parse this JSON data, do
-//
-//     final getNoteModel = getNoteModelFromJson(jsonString);
-
-import 'dart:convert';
-
-List<GetNoteModel> getNoteModelFromJson(String str) => List<GetNoteModel>.from(
-    json.decode(str).map((x) => GetNoteModel.fromJson(x)));
-
-String getNoteModelToJson(List<GetNoteModel> data) =>
-    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
-
 class GetNoteModel {
-  String? id;
-  String? salesman;
-  String? title;
-  String? note;
-  int? v;
+  final String id;
+  final Salesman salesman;
+  final String title;
+  final String note;
 
   GetNoteModel({
-    this.id,
-    this.salesman,
-    this.title,
-    this.note,
-    this.v,
+    required this.id,
+    required this.salesman,
+    required this.title,
+    required this.note,
   });
 
-  factory GetNoteModel.fromJson(Map<String, dynamic> json) => GetNoteModel(
-        id: json["_id"],
-        salesman: json["salesman"],
-        title: json["title"],
-        note: json["note"],
-        v: json["__v"],
-      );
+  factory GetNoteModel.fromJson(Map<String, dynamic> json) {
+    return GetNoteModel(
+      id: json['_id'] ?? '',
+      salesman: Salesman.fromJson(json['salesman']),
+      title: json['title'] ?? '',
+      note: json['note'] ?? '',
+    );
+  }
+}
 
-  Map<String, dynamic> toJson() => {
-        "_id": id,
-        "salesman": salesman,
-        "title": title,
-        "note": note,
-        "__v": v,
-      };
+class Salesman {
+  final String id;
+  final String name;
+  final String email;
+  final int mobileNumber;
+
+  Salesman({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.mobileNumber,
+  });
+
+  factory Salesman.fromJson(Map<String, dynamic> json) {
+    return Salesman(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      mobileNumber: json['mobileNumber'] ?? 0,
+    );
+  }
 }

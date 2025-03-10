@@ -55,4 +55,47 @@ class ExpenseController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> fetchExpense(String expenseId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final expenseModel = await _expenseService.getExpenseById(expenseId);
+    if (expenseModel != null) {
+      _expenses = expenseModel.expenses ?? [];
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future updateExpense(
+      BuildContext context, String expenseId, Map<String, dynamic> data) async {
+    bool success = await _expenseService.updateExpense(expenseId, data);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Expense updated successfully")),
+      );
+      notifyListeners();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to update expense")),
+      );
+    }
+  }
+
+  Future<void> deleteExpense(BuildContext context, String expenseId) async {
+    bool success = await _expenseService.deleteExpense(expenseId);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Expense deleted successfully")),
+      );
+      Navigator.pop(context); // Go back after deletion
+      notifyListeners();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to delete expense")),
+      );
+    }
+  }
 }

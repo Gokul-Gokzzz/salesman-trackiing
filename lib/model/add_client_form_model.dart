@@ -30,6 +30,7 @@ class AddClintModel {
 }
 
 class Client {
+  String? salemanId;
   String? name;
   String? companyName;
   String? email;
@@ -44,6 +45,7 @@ class Client {
 
   Client({
     this.name,
+    this.salemanId,
     this.companyName,
     this.email,
     this.contact,
@@ -58,6 +60,7 @@ class Client {
 
   factory Client.fromJson(Map<String, dynamic> json) => Client(
         name: json["name"],
+        salemanId: json["salesmanId"],
         companyName: json["companyName"],
         email: json["email"],
         contact: json["contact"],
@@ -76,6 +79,7 @@ class Client {
 
   Map<String, dynamic> toJson() => {
         "name": name,
+        "salesmanId": salemanId,
         "companyName": companyName,
         "email": email,
         "contact": contact,
