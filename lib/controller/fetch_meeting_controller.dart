@@ -27,10 +27,9 @@ class GetMeetingController extends ChangeNotifier {
 
     try {
       meetingDetails = await _meetingService.fetchMeetingDetails(meetingId);
-
-      log("Meeting Details Response: ${meetingDetails != null ? meetingDetails.toString() : 'No data received'}");
+      log("✅ Meeting Details Response: ${meetingDetails?.id}");
     } catch (e) {
-      log("Error fetching meeting details: $e");
+      log("❌ Error fetching meeting details: $e");
     } finally {
       isLoading = false;
       notifyListeners();

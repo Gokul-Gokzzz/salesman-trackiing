@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:salesman/controller/fetch_meeting_controller.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ScheduledMeetingDetails extends StatefulWidget {
   final String meetingId;
@@ -21,7 +20,7 @@ class _ScheduledMeetingDetailsState extends State<ScheduledMeetingDetails> {
     log("✅ Fetching details for Meeting ID: ${widget.meetingId}");
     await _meetingDetailsController.getMeetingDetails(widget.meetingId);
 
-    log("🛠 Meeting Details Response: ${_meetingDetailsController.meetingDetails}");
+    // log("🛠 Meeting Details Response: ${_meetingDetailsController.meetingDetails}");
   }
 
   @override
@@ -84,28 +83,51 @@ class _ScheduledMeetingDetailsState extends State<ScheduledMeetingDetails> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 13.0),
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : meetingDetails == null
-                      ? const Center(
-                          child: Text('Meeting details not available.'))
-                      : ListView(
-                          padding: EdgeInsets.zero,
-                          children: [
-                            //   _buildDetailItem(
-                            //       "Date",
-                            //       meetingDetails.meetingDetails!.dateTime
-                            // .toString()),
-                            _buildDetailItem("Location",
-                                meetingDetails.meetingDetails!.locationDetails),
-                            _buildDetailItem("Agenda",
-                                meetingDetails.meetingDetails!.agenda),
-                            _buildDetailItem("Participants",
-                                meetingDetails.meetingDetails!.locationType),
-                            _buildDetailItem("Notes",
-                                meetingDetails.meetingDetails!.notes ?? "N/A"),
-                          ],
-                        ),
+              child:
+                  // isLoading
+                  //     ? const Center(child: CircularProgressIndicator())
+                  //     : meetingDetails == null
+                  //         ? const Center(
+                  //             child: Text('Meeting details not available.'))
+                  //         : ListView(
+                  //             padding: EdgeInsets.zero,
+                  //             children: [
+                  //               //   _buildDetailItem(
+                  //               //       "Date",
+                  //               //       meetingDetails.meetingDetails!.dateTime
+                  //               // .toString()),
+                  //               _buildDetailItem("Location",
+                  //                   meetingDetails.meetingDetails!.locationDetails),
+                  //               _buildDetailItem("Agenda",
+                  //                   meetingDetails.meetingDetails!.agenda),
+                  //               _buildDetailItem("Participants",
+                  //                   meetingDetails.meetingDetails!.locationType),
+                  //               _buildDetailItem(
+                  //                   "Notes", meetingDetails.meetingDetails!.notes),
+                  //             ],
+                  //           ),
+                  isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : meetingDetails == null
+                          ? const Center(
+                              child: Text('Meeting details not available.'))
+                          : ListView(
+                              padding: EdgeInsets.zero,
+                              children: [
+                                _buildDetailItem(
+                                    "Location",
+                                    meetingDetails
+                                        .meetingDetails?.locationDetails),
+                                _buildDetailItem("Agenda",
+                                    meetingDetails.meetingDetails?.agenda),
+                                _buildDetailItem(
+                                    "Participants",
+                                    meetingDetails
+                                        .meetingDetails?.locationType),
+                                _buildDetailItem("Notes",
+                                    meetingDetails.meetingDetails?.notes),
+                              ],
+                            ),
             ),
           ),
         ],
