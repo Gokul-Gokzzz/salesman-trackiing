@@ -1,0 +1,2 @@
+E:/xian/salesman-trackiing/android/app/.cxx/RelWithDebInfo/qe54115p/armeabi-v7a/CMakeFiles/edit_cache.dir
+E:/xian/salesman-trackiing/android/app/.cxx/RelWithDebInfo/qe54115p/armeabi-v7a/CMakeFiles/rebuild_cache.dir
