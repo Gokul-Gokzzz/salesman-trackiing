@@ -124,7 +124,8 @@ class ExpenseDetailsScreen extends StatelessWidget {
                       const Text("Edit", style: TextStyle(color: Colors.white)),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () => _confirmDelete(context, expenseController),
+                  onPressed: () => _confirmDelete(
+                      context, expenseController, expense.id.toString()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     padding: const EdgeInsets.symmetric(
@@ -184,12 +185,12 @@ class ExpenseDetailsScreen extends StatelessWidget {
               children: [
                 TextField(
                   controller: expensesTypeController,
-                  decoration: const InputDecoration(labelText: "Expenses Type"),
+                  decoration: const InputDecoration(labelText: "Expense Type"),
                 ),
                 TextField(
                   controller: amountController,
                   decoration: const InputDecoration(labelText: "Amount"),
-                  keyboardType: TextInputType.number, // Ensure number input
+                  keyboardType: TextInputType.number,
                 ),
                 TextField(
                   controller: notesController,
@@ -200,32 +201,21 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   onPressed: () async {
                     Map<String, dynamic> updatedData = {
                       "expenseType": expensesTypeController.text,
-                      "amount": int.tryParse(amountController.text) ??
-                          0, // Parse as int with fallback
+                      "amount": int.tryParse(amountController.text) ?? 0,
                       "notes": notesController.text,
                     };
 
-                    try {
-                      bool success = await controller.updateExpense(
-                          context, expense.id.toString(), updatedData);
+                    bool success = await controller.updateExpense(
+                        context, expense.id.toString(), updatedData);
 
-                      if (success) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text("Expense updated successfully")),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text("Failed to update expense")),
-                        );
-                      }
-                    } catch (e) {
-                      // Handle exceptions (e.g., network errors, server errors)
-                      // ScaffoldMessenger.of(context).showSnackBar(
-                      //   SnackBar(content: Text("Error updating expense: $e")),
-                      // );
+                    if (success) {
+                      Navigator.pop(context);
+                      Navigator.pop(context, true);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Failed to update expense")),
+                      );
                     }
                   },
                   child: const Text("Save"),
@@ -238,9 +228,10 @@ class ExpenseDetailsScreen extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(
-      BuildContext context, ExpenseController expenseController) {
-    showDialog(
+  void _confirmDelete(BuildContext context, ExpenseController expenseController,
+      String expenseId) async {
+    bool deleted = false;
+    await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Confirm Delete"),
@@ -250,8 +241,10 @@ class ExpenseDetailsScreen extends StatelessWidget {
               onPressed: () => Navigator.pop(context),
               child: const Text("Cancel")),
           TextButton(
-            onPressed: () =>
-                expenseController.deleteExpense(context, expense.id.toString()),
+            onPressed: () async {
+              await expenseController.deleteExpense(context, expenseId);
+              Navigator.pop(context);
+            },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text("Delete"),
           ),

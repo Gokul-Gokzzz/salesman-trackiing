@@ -22,6 +22,9 @@ class TakeOrderScreen extends StatefulWidget {
 class _TakeOrderScreenState extends State<TakeOrderScreen> {
   int quantity = 1;
   double totalPrice = 0.0;
+  TextEditingController clientNameController = TextEditingController();
+  List<String> clientSuggestions = [];
+  bool showSuggestions = false;
 
   @override
   void initState() {
@@ -42,79 +45,129 @@ class _TakeOrderScreenState extends State<TakeOrderScreen> {
 //     });
 //   }
 
-  void _submitOrder(BuildContext context) {
+  void _submitOrder(BuildContext context) async {
+    final clientProvider = Provider.of<ClientProvider>(context, listen: false);
+    final prefs = await SharedPreferences.getInstance();
+    String? salesmanId = prefs.getString('id');
+
+    if (salesmanId == null || salesmanId.isEmpty) {
+      log("❌ Salesman ID is null or empty!");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Salesman ID not found")),
+      );
+      return;
+    }
+
+    await clientProvider.getClients(salesmanId);
+
     showDialog(
       context: context,
       builder: (context) {
-        TextEditingController clientNameController = TextEditingController();
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: Text("Enter Client Name"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: clientNameController,
+                    decoration: InputDecoration(
+                      hintText: "Client Name",
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        if (value.isNotEmpty) {
+                          clientSuggestions = clientProvider.clients
+                              .where((client) => client.name
+                                  .toLowerCase()
+                                  .contains(value.toLowerCase()))
+                              .map((client) => client.name)
+                              .toList();
+                          showSuggestions = clientSuggestions
+                              .isNotEmpty; // Show only if there are suggestions
+                        } else {
+                          clientSuggestions.clear();
+                          showSuggestions = false;
+                        }
+                      });
+                    },
+                  ),
+                  if (showSuggestions) // Conditionally show suggestions
+                    Container(
+                      height: 100,
+                      width: double.maxFinite,
+                      child: ListView.builder(
+                        itemCount: clientSuggestions.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(clientSuggestions[index]),
+                            onTap: () {
+                              clientNameController.text =
+                                  clientSuggestions[index];
+                              setState(() {
+                                clientSuggestions.clear();
+                                showSuggestions =
+                                    false; // Hide suggestions after selection
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close the dialog
+                  },
+                  child: Text("Cancel"),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    String clientName = clientNameController.text.trim();
+                    if (clientName.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Please enter a client name")),
+                      );
+                      return;
+                    }
 
-        return AlertDialog(
-          title: Text("Enter Client Name"),
-          content: TextField(
-            controller: clientNameController,
-            decoration: InputDecoration(
-              hintText: "Client Name",
-              border: OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-              },
-              child: Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                String clientName = clientNameController.text.trim();
-                if (clientName.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Please enter a client name")),
-                  );
-                  return;
-                }
+                    final orderController =
+                        Provider.of<OrderController>(context, listen: false);
 
-                final orderController =
-                    Provider.of<OrderController>(context, listen: false);
-                final prefs = await SharedPreferences.getInstance();
-                String? salesmanId = prefs.getString('id');
+                    log("✅ Salesman ID: $salesmanId");
 
-                if (salesmanId == null || salesmanId.isEmpty) {
-                  log("❌ Salesman ID is null or empty!");
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Salesman ID not found")),
-                  );
-                  return;
-                }
+                    Order order = Order(
+                      salesmanId: salesmanId,
+                      clientName: clientName,
+                      products: [
+                        ProductOrder(
+                          productId: widget.orderedProduct.id ?? "",
+                          quantity: quantity,
+                        )
+                      ],
+                      totalAmount: totalPrice,
+                      status: "pending",
+                    );
 
-                log("✅ Salesman ID: $salesmanId");
+                    await orderController.createOrder(order);
 
-                Order order = Order(
-                  salesmanId: salesmanId,
-                  clientName: clientName, // Use the entered client name
-                  products: [
-                    ProductOrder(
-                      productId: widget.orderedProduct.id ?? "",
-                      quantity: quantity,
-                    )
-                  ],
-                  totalAmount: totalPrice,
-                  status: "pending",
-                );
+                    if (orderController.message.isNotEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(orderController.message)),
+                      );
+                    }
 
-                await orderController.createOrder(order);
-
-                if (orderController.message.isNotEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(orderController.message)),
-                  );
-                }
-
-                Navigator.pop(context); // Close the dialog after submission
-              },
-              child: Text("Submit"),
-            ),
-          ],
+                    Navigator.pop(context); // Close the dialog after submission
+                  },
+                  child: Text("Submit"),
+                ),
+              ],
+            );
+          },
         );
       },
     );

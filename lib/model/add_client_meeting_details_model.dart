@@ -36,7 +36,7 @@ class AddMeeting {
   String? fieldStaff;
   String? agenda;
   String? notes;
-  String? attachment;
+  // String? attachment;
   String? repeatFrequency;
   DateTime? followUpReminder;
   String? id;
@@ -54,7 +54,7 @@ class AddMeeting {
     this.fieldStaff,
     this.agenda,
     this.notes,
-    this.attachment,
+    // this.attachment,
     this.repeatFrequency,
     this.followUpReminder,
     this.id,
@@ -73,7 +73,7 @@ class AddMeeting {
         locationDetails: json["locationDetails"],
         fieldStaff: json["fieldStaff"],
         notes: json["notes"],
-        attachment: json["attachment"],
+        // attachment: json["attachment"],
         repeatFrequency: json["repeatFrequency"],
         followUpReminder: json["followUpReminder"] == null
             ? null
@@ -98,7 +98,7 @@ class AddMeeting {
         "fieldStaff": fieldStaff,
         "agenda": agenda,
         "notes": notes,
-        "attachment": attachment,
+        // "attachment": attachment,
         "repeatFrequency": repeatFrequency,
         "followUpReminder": followUpReminder?.toIso8601String(),
         // "_id": id,

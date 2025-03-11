@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:salesman/view/app_base_screen/view/meetings/add_client_screen.dart';
+import 'package:salesman/view/app_base_screen/view/clients/add_client_screen.dart';
 import 'package:salesman/view/app_base_screen/view/attandence/attandence_tracking.dart';
 import 'package:salesman/view/app_base_screen/view/clients/client_list_screen.dart';
 import 'package:salesman/view/app_base_screen/view/dashboard/dashboard_screen.dart';

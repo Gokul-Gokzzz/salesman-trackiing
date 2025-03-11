@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:salesman/controller/add_client_form_controller.dart';
 import 'package:salesman/controller/add_client_meeting_details_controller.dart';
+import 'package:salesman/controller/client/get_client_controller.dart';
 import 'package:salesman/controller/field_staff_controller.dart';
 import 'package:salesman/model/add_client_meeting_details_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,6 +36,8 @@ class _ClientMeetingDetailsScreenState
   String? _selectedFieldStaff;
   String? _selectedRepeatFrequency;
 
+  List<String> clientSuggestions = [];
+  bool showSuggestions = false;
   @override
   void initState() {
     super.initState();
@@ -98,14 +101,14 @@ class _ClientMeetingDetailsScreenState
     }
   }
 
-  void _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      setState(() {
-        _selectedFile = File(result.files.single.path!);
-      });
-    }
-  }
+  // void _pickFile() async {
+  //   FilePickerResult? result = await FilePicker.platform.pickFiles();
+  //   if (result != null) {
+  //     setState(() {
+  //       _selectedFile = File(result.files.single.path!);
+  //     });
+  //   }
+  // }
 
   void _submitMeeting() async {
     final meetingController =
@@ -144,7 +147,7 @@ class _ClientMeetingDetailsScreenState
       notes: _notesController.text,
       repeatFrequency: _selectedRepeatFrequency ?? '',
       followUpReminder: _followUpReminder,
-      attachment: _selectedFile?.path,
+      // attachment: _selectedFile?.path,
     );
 
     meetingController.createMeeting(newMeeting, context);
@@ -208,10 +211,53 @@ class _ClientMeetingDetailsScreenState
                           border: OutlineInputBorder())),
                   const SizedBox(height: 15),
                   TextField(
-                      controller: _clientController,
-                      decoration: const InputDecoration(
-                          labelText: "Client Name",
-                          border: OutlineInputBorder())),
+                    controller: _clientController,
+                    decoration: const InputDecoration(
+                        labelText: "Client Name", border: OutlineInputBorder()),
+                    onChanged: (value) async {
+                      final clientProvider =
+                          Provider.of<ClientProvider>(context, listen: false);
+                      final prefs = await SharedPreferences.getInstance();
+                      String? salesmanId = prefs.getString('id');
+                      if (salesmanId == null || salesmanId.isEmpty) return;
+                      await clientProvider.getClients(salesmanId);
+
+                      setState(() {
+                        if (value.isNotEmpty) {
+                          clientSuggestions = clientProvider.clients
+                              .where((client) => client.name
+                                  .toLowerCase()
+                                  .contains(value.toLowerCase()))
+                              .map((client) => client.name)
+                              .toList();
+                          showSuggestions = clientSuggestions.isNotEmpty;
+                        } else {
+                          clientSuggestions.clear();
+                          showSuggestions = false;
+                        }
+                      });
+                    },
+                  ),
+                  if (showSuggestions)
+                    Container(
+                      height: 100,
+                      width: double.maxFinite,
+                      child: ListView.builder(
+                        itemCount: clientSuggestions.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(clientSuggestions[index]),
+                            onTap: () {
+                              _clientController.text = clientSuggestions[index];
+                              setState(() {
+                                clientSuggestions.clear();
+                                showSuggestions = false;
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
                   const SizedBox(height: 15),
                   GestureDetector(
                     onTap: _pickDateTime,
@@ -318,12 +364,12 @@ class _ClientMeetingDetailsScreenState
                     ),
                   ),
                   const SizedBox(height: 15),
-                  ElevatedButton(
-                    onPressed: _pickFile,
-                    child: Text(_selectedFile == null
-                        ? "Upload Attachment"
-                        : "Attachment: ${_selectedFile!.path.split('/').last}"),
-                  ),
+                  // ElevatedButton(
+                  //   onPressed: _pickFile,
+                  //   child: Text(_selectedFile == null
+                  //       ? "Upload Attachment"
+                  //       : "Attachment: ${_selectedFile!.path.split('/').last}"),
+                  // ),
                   const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,

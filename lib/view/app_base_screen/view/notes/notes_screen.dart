@@ -113,92 +113,108 @@ class _NotesScreenState extends State<NotesScreen> {
                               const SizedBox(
                                 height: 10,
                               ),
-                              const Text(
-                                "Title",
-                                style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.w400),
-                              ),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              SizedBox(
-                                height: 30,
-                                child: TextField(
-                                  controller: titleController,
-                                  decoration: InputDecoration(
-                                    hintText: "Title",
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(2),
-                                      borderSide: const BorderSide(
-                                          color: Color(0XFF094497)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(2),
-                                      borderSide: const BorderSide(
-                                          color: Color(0XFF094497)),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(2),
-                                      borderSide: const BorderSide(
-                                          color: Color(0XFF094497)),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 8.0,
-                                      horizontal: 8.0,
-                                    ),
-                                  ),
-                                  style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold),
+                              TextField(
+                                controller: titleController,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: "Title",
+                                  border: OutlineInputBorder(),
                                 ),
                               ),
+                              // const Text(
+                              //   "Title",
+                              //   style: TextStyle(
+                              //       fontSize: 13, fontWeight: FontWeight.w400),
+                              // ),
+                              // const SizedBox(
+                              //   height: 10,
+                              // ),
+                              // SizedBox(
+                              //   height: 30,
+                              //   child: TextField(
+                              //     controller: titleController,
+                              //     decoration: InputDecoration(
+                              //       hintText: "Title",
+                              //       border: OutlineInputBorder(
+                              //         borderRadius: BorderRadius.circular(2),
+                              //         borderSide: const BorderSide(
+                              //             color: Color(0XFF094497)),
+                              //       ),
+                              //       focusedBorder: OutlineInputBorder(
+                              //         borderRadius: BorderRadius.circular(2),
+                              //         borderSide: const BorderSide(
+                              //             color: Color(0XFF094497)),
+                              //       ),
+                              //       enabledBorder: OutlineInputBorder(
+                              //         borderRadius: BorderRadius.circular(2),
+                              //         borderSide: const BorderSide(
+                              //             color: Color(0XFF094497)),
+                              //       ),
+                              //       contentPadding: const EdgeInsets.symmetric(
+                              //         vertical: 8.0,
+                              //         horizontal: 8.0,
+                              //       ),
+                              //     ),
+                              //     style: const TextStyle(
+                              //         fontSize: 10,
+                              //         fontWeight: FontWeight.bold),
+                              //   ),
+                              // ),
                               const SizedBox(
                                 height: 10,
                               ),
-                              const Text(
-                                "Note",
-                                style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.w400),
-                              ),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              SizedBox(
-                                height: 58,
-                                child: TextField(
-                                  controller: noteController,
-                                  maxLines: null,
-                                  keyboardType: TextInputType.multiline,
-                                  decoration: InputDecoration(
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(2),
-                                      borderSide: const BorderSide(
-                                          color: Color(0XFF094497)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(2),
-                                      borderSide: const BorderSide(
-                                          color: Color(0XFF094497)),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(2),
-                                      borderSide: const BorderSide(
-                                          color: Color(0XFF094497)),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 5.0,
-                                      horizontal: 8.0,
-                                    ),
-                                  ),
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                  ),
-                                  scrollPadding: const EdgeInsets.all(10.0),
+                              TextField(
+                                controller: noteController,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: "Note",
+                                  border: OutlineInputBorder(),
                                 ),
                               ),
-                              const SizedBox(
-                                height: 15,
-                              ),
+                              // const Text(
+                              //   "Note",
+                              //   style: TextStyle(
+                              //       fontSize: 13, fontWeight: FontWeight.w400),
+                              // ),
+                              // const SizedBox(
+                              //   height: 10,
+                              // ),
+                              // SizedBox(
+                              //   height: 58,
+                              //   child: TextField(
+                              //     controller: noteController,
+                              //     maxLines: null,
+                              //     keyboardType: TextInputType.multiline,
+                              //     decoration: InputDecoration(
+                              //       border: OutlineInputBorder(
+                              //         borderRadius: BorderRadius.circular(2),
+                              //         borderSide: const BorderSide(
+                              //             color: Color(0XFF094497)),
+                              //       ),
+                              //       focusedBorder: OutlineInputBorder(
+                              //         borderRadius: BorderRadius.circular(2),
+                              //         borderSide: const BorderSide(
+                              //             color: Color(0XFF094497)),
+                              //       ),
+                              //       enabledBorder: OutlineInputBorder(
+                              //         borderRadius: BorderRadius.circular(2),
+                              //         borderSide: const BorderSide(
+                              //             color: Color(0XFF094497)),
+                              //       ),
+                              //       contentPadding: const EdgeInsets.symmetric(
+                              //         vertical: 5.0,
+                              //         horizontal: 8.0,
+                              //       ),
+                              //     ),
+                              //     style: const TextStyle(
+                              //       fontSize: 10,
+                              //     ),
+                              //     scrollPadding: const EdgeInsets.all(10.0),
+                              //   ),
+                              // ),
+                              // const SizedBox(
+                              //   height: 15,
+                              // ),
                               ElevatedButton(
                                 onPressed: () async {
                                   String title = titleController.text.trim();

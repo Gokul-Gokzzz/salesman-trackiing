@@ -20,14 +20,14 @@ class LeaderBoard extends StatelessWidget {
             elevation: 0,
             forceMaterialTransparency: false,
             actions: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: SvgPicture.asset(
-                  "assets/images/notification.svg",
-                  height: 33,
-                  width: 33,
-                ),
-              )
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              //   child: SvgPicture.asset(
+              //     "assets/images/notification.svg",
+              //     height: 33,
+              //     width: 33,
+              //   ),
+              // )
             ],
             title: const SizedBox(
                 width: 63,
@@ -98,7 +98,7 @@ class LeaderBoard extends StatelessWidget {
                                             color: Color(0XFF094497)),
                                       ),
                                       Text(
-                                        " 3",
+                                        " 1",
                                         style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500),
@@ -135,7 +135,7 @@ class LeaderBoard extends StatelessWidget {
                                             color: Color(0XFF094497)),
                                       ),
                                       Text(
-                                        "2000 pts ",
+                                        "3100 pts ",
                                         style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500),
@@ -180,7 +180,7 @@ class LeaderBoard extends StatelessWidget {
                                           color: Color(0XFF094497)),
                                     ),
                                     Text(
-                                      "  James",
+                                      "  jkz",
                                       style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500),

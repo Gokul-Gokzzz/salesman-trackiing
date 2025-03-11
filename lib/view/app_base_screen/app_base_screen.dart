@@ -22,25 +22,25 @@ class BaseScreen extends StatelessWidget {
             icon: SvgPicture.asset(
               'assets/bottomnav_ic/mynaui_home.svg',
             ),
-            label: "",
+            label: "Home",
           ),
           NavigationDestination(
             icon: SvgPicture.asset(
               'assets/bottomnav_ic/Star.svg',
             ),
-            label: "",
+            label: "LeaderBoard",
           ),
           NavigationDestination(
             icon: SvgPicture.asset(
               'assets/bottomnav_ic/Bag.svg',
             ),
-            label: "",
+            label: "Clients",
           ),
           NavigationDestination(
             icon: SvgPicture.asset(
               'assets/bottomnav_ic/bottom_person.svg',
             ),
-            label: "",
+            label: "Attendance",
           ),
         ],
       ),

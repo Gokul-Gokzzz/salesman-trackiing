@@ -78,7 +78,7 @@ class AuthProvider extends ChangeNotifier {
     UserRegistrationModel user = UserRegistrationModel(
       name: name,
       email: email,
-      mobileNumber: mobileNumber,
+      mobileNumber: int.parse(mobileNumber),
       password: password,
       accountProvider: accountProvider,
     );

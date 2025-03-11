@@ -1,7 +1,7 @@
 class UserRegistrationModel {
   final String name;
   final String email;
-  final String mobileNumber;
+  final int mobileNumber;
   final String password;
   final String accountProvider;
 

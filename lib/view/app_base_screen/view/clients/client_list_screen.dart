@@ -5,9 +5,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:salesman/controller/client/get_client_controller.dart';
 import 'package:salesman/model/client/get_client_model.dart';
-import 'package:salesman/view/app_base_screen/view/meetings/add_client_screen.dart';
+import 'package:salesman/view/app_base_screen/view/clients/add_client_screen.dart';
 import 'package:salesman/view/app_base_screen/view/clients/client_details_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Assuming you have this screen
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart'; // Assuming you have this screen
 
 class ClientListScreen extends StatefulWidget {
   const ClientListScreen({super.key});
@@ -52,50 +53,53 @@ class _ClientListScreenState extends State<ClientListScreen> {
       backgroundColor: const Color(0xffF2F2F2),
       body: Consumer<ClientProvider>(
         builder: (context, clientProvider, child) {
-          return Column(
-            children: [
-              _buildHeader(context),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 13.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 30.75),
-                      const Text(
-                        "Clients",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600),
-                      ),
-                      Container(
-                        height: 3,
-                        width: 66.02,
-                        decoration: BoxDecoration(
-                          color: const Color(0XFF094497),
-                          borderRadius: BorderRadius.circular(20),
+          return RefreshIndicator(
+            onRefresh: _fetchClients,
+            child: Column(
+              children: [
+                _buildHeader(context),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 13.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 30.75),
+                        const Text(
+                          "Clients",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w600),
                         ),
-                      ),
-                      const SizedBox(height: 30.75),
-                      if (clientProvider.isLoading)
-                        const Center(child: CircularProgressIndicator())
-                      else if (clientProvider.clients.isEmpty)
-                        const Center(child: Text("No clients added yet."))
-                      else
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: clientProvider.clients.length,
-                            itemBuilder: (context, index) {
-                              return _buildClientListItem(
-                                  clientProvider.clients[index]);
-                            },
+                        Container(
+                          height: 3,
+                          width: 66.02,
+                          decoration: BoxDecoration(
+                            color: const Color(0XFF094497),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                         ),
-                      const SizedBox(height: 20),
-                    ],
+                        const SizedBox(height: 30.75),
+                        if (clientProvider.isLoading)
+                          const Center(child: CircularProgressIndicator())
+                        else if (clientProvider.clients.isEmpty)
+                          const Center(child: Text("No clients added yet."))
+                        else
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: clientProvider.clients.length,
+                              itemBuilder: (context, index) {
+                                return _buildClientListItem(
+                                    clientProvider.clients[index]);
+                              },
+                            ),
+                          ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),
@@ -158,39 +162,88 @@ class _ClientListScreenState extends State<ClientListScreen> {
   }
 
   Widget _buildClientListItem(ClientModel client) {
-    // log("client id : ${client.id}");
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => ClientDetailsScreen(
-                      clientId: client.id!,
-                    )));
-      },
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: const Color(0XFFFFFFFF),
-          borderRadius: BorderRadius.circular(7),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Name: ${client.name ?? 'N/A'}"),
-              Text("Company: ${client.companyName ?? 'N/A'}"),
-              Text("Email: ${client.email ?? 'N/A'}"),
-              Text("Contact: ${client.contact ?? 'N/A'}"),
-              Text("Address: ${client.address ?? 'N/A'}"),
-              Text("Outstanding Due: ${client.outstandingDue ?? 'N/A'}"),
-              Text("Orders Placed: ${client.ordersPlaced ?? 'N/A'}"),
-            ],
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ClientDetailsScreen(clientId: client.id!),
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius:
+                  BorderRadius.circular(8), // Slight rounding for aesthetics
+            ),
+            child: Row(
+              children: [
+                // Circular Avatar with First Letter of Name
+                CircleAvatar(
+                  backgroundColor:
+                      Colors.amber, // Matches the image color scheme
+                  radius: 20,
+                  child: Text(
+                    client.name != null && client.name!.isNotEmpty
+                        ? client.name![0].toUpperCase()
+                        : "?",
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // Client Name and Contact Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        client.name ?? "Unknown",
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Call Icon
+                GestureDetector(
+                  onTap: () {
+                    _launchDialer(client.contact);
+                  },
+                  child: const Icon(Icons.call, color: Colors.black, size: 24),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
+
+        // Space between each client item
+        const SizedBox(height: 10),
+      ],
     );
+  }
+
+// Function to launch the phone dialer
+  void _launchDialer(String? phoneNumber) async {
+    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+      final Uri url = Uri.parse('tel:$phoneNumber');
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else {
+        log("Could not launch dialer");
+      }
+    }
   }
 }

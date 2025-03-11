@@ -5,12 +5,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:salesman/controller/auth_conroller.dart';
 import 'package:salesman/controller/dashboard_controller.dart';
-import 'package:salesman/view/app_base_screen/view/meetings/add_client_screen.dart';
+import 'package:salesman/view/app_base_screen/view/clients/add_client_screen.dart';
 import 'package:salesman/view/app_base_screen/view/attandence/checkin_checkout_screen.dart';
 import 'package:salesman/view/app_base_screen/view/clients/client_list_screen.dart';
 import 'package:salesman/view/app_base_screen/view/collections/collections_screen.dart';
 import 'package:salesman/view/app_base_screen/view/expenses/expenses_screen.dart';
 import 'package:salesman/view/app_base_screen/view/notes/notes_screen.dart';
+import 'package:salesman/view/app_base_screen/view/notification/notification_screen.dart';
 import 'package:salesman/view/app_base_screen/view/order/product_list_screen.dart';
 import 'package:salesman/view/app_base_screen/view/meetings/scheduled_meetings.dart';
 import 'package:salesman/view/app_base_screen/view/tabview.dart';
@@ -140,10 +141,34 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
           actions: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: SvgPicture.asset(
-                "assets/images/notification.svg",
-                height: 33,
-                width: 33,
+              child: GestureDetector(
+                onTap: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  String? salesmanId = prefs
+                      .getString('id'); // Retrieve ID from SharedPreferences
+
+                  if (salesmanId == null || salesmanId.isEmpty) {
+                    log("❌ Salesman ID is null or empty!");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Salesman ID not found")));
+                    return;
+                  }
+
+                  log("✅ Salesman ID: $salesmanId");
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          NotificationScreen(userId: salesmanId),
+                    ),
+                  );
+                },
+                child: SvgPicture.asset(
+                  "assets/images/notification.svg",
+                  height: 33,
+                  width: 33,
+                ),
               ),
             ),
             IconButton(

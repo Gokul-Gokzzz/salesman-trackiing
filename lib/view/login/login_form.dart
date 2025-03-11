@@ -15,6 +15,7 @@ class LoginFormWidget extends StatefulWidget {
 }
 
 class _LoginFormWidgetState extends State<LoginFormWidget> {
+  final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
@@ -37,7 +38,13 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                     const SizedBox(
                       height: 20,
                     ),
-                    _buildTextField("Username", controller: _nameController),
+                    _buildTextField(
+                      "Phone Number",
+                      controller: _phoneNumberController,
+                      keyboardType:
+                          TextInputType.phone, // Set keyboard type to phone
+                    ),
+                    // _buildTextField("Username", controller: _nameController),
                     const SizedBox(
                       height: 18,
                     ),
@@ -260,9 +267,11 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
   Widget _buildTextField(String hintText,
       {bool isPassword = false,
       required TextEditingController controller,
-      Widget? suffixIcon}) {
+      Widget? suffixIcon,
+      TextInputType keyboardType = TextInputType.text}) {
     return TextField(
       controller: controller,
+      keyboardType: keyboardType,
       obscureText: isPassword,
       decoration: InputDecoration(
         filled: true,
@@ -286,12 +295,13 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
       width: double.maxFinite,
       child: ElevatedButton(
         onPressed: () async {
-          String name = _nameController.text.trim();
+          String phoneNumber = _phoneNumberController.text.trim();
+          // String name = _nameController.text.trim();
           String password = _passwordController.text.trim();
 
-          if (name.isNotEmpty && password.isNotEmpty) {
+          if (phoneNumber.isNotEmpty && password.isNotEmpty) {
             await loginProvider.login(
-              name,
+              phoneNumber,
               password,
             );
             if (loginProvider.loginModel != null) {
@@ -308,7 +318,8 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
             }
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Please enter email and password.")),
+              const SnackBar(
+                  content: Text("Please enter phone number and password.")),
             );
           }
         },

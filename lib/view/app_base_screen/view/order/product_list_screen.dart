@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:salesman/controller/product_controller.dart';
-import 'package:salesman/controller/take_order_provider.dart';
 import 'package:salesman/model/product_model.dart';
 import 'package:salesman/view/app_base_screen/view/order/order_summery_screen.dart';
-import 'package:salesman/view/app_base_screen/view/order/take_order_screen.dart'; // Import TakeOrderScreen
+import 'package:salesman/view/app_base_screen/view/order/take_order_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({Key? key}) : super(key: key);
@@ -15,6 +14,8 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
+  String searchQuery = "";
+
   @override
   void initState() {
     super.initState();
@@ -79,33 +80,50 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Available Products",
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.w600),
+                      const SizedBox(height: 20),
+                      TextField(
+                        onChanged: (value) {
+                          setState(() {
+                            searchQuery = value.toLowerCase();
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: "Search Products...",
+                          prefixIcon: const Icon(Icons.search,
+                              color: Color(0XFF094497)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                const BorderSide(color: Color(0XFF094497)),
                           ),
-                          TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        OrderSummaryScreen(), // Replace with your OrderSummaryScreen
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                "Order Summary",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0XFF094497),
-                                ),
-                              ))
-                        ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => OrderSummaryScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            "Order Summary",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0XFF094497),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        "Available Products",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w600),
                       ),
                       Container(
                         height: 3,
@@ -115,7 +133,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      const SizedBox(height: 30.75),
+                      const SizedBox(height: 20),
                       productController.isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : productController.products.isEmpty
@@ -129,12 +147,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   ),
                                 )
                               : Column(
-                                  children:
-                                      productController.products.map((product) {
-                                    return ProductCard(
-                                      product:
-                                          product, // Pass the entire product object
-                                    );
+                                  children: productController.products
+                                      .where((product) => product.name!
+                                          .toLowerCase()
+                                          .contains(searchQuery))
+                                      .map((product) {
+                                    return ProductCard(product: product);
                                   }).toList(),
                                 ),
                       const SizedBox(height: 50),
@@ -151,12 +169,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
 }
 
 class ProductCard extends StatelessWidget {
-  final Product product; // Receive the entire product object
+  final Product product;
 
-  const ProductCard({
-    Key? key,
-    required this.product,
-  }) : super(key: key);
+  const ProductCard({Key? key, required this.product}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -187,8 +202,13 @@ class ProductCard extends StatelessWidget {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                _orderProduct(
-                    context, product); // Pass the product to the order function
+                _orderProduct(context, product);
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => OrderSummaryScreen(),
+                //   ),
+                // );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0XFF094497),

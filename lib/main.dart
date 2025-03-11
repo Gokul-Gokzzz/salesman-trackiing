@@ -13,6 +13,7 @@ import 'package:salesman/controller/collections/collection_controller.dart';
 import 'package:salesman/controller/collection_details_controller.dart';
 import 'package:salesman/controller/dashboard_controller.dart';
 import 'package:salesman/controller/expense_controlelr.dart';
+import 'package:salesman/controller/expenses_type_controller.dart';
 import 'package:salesman/controller/fetch_meeting_controller.dart';
 import 'package:salesman/controller/field_staff_controller.dart';
 import 'package:salesman/controller/forgot_password_provider.dart';
@@ -21,6 +22,7 @@ import 'package:salesman/controller/leader_board_controller.dart';
 import 'package:salesman/controller/meeting_controller.dart';
 import 'package:salesman/controller/navigation_controller.dart';
 import 'package:salesman/controller/note_controller.dart';
+import 'package:salesman/controller/notification_controller.dart';
 import 'package:salesman/controller/order_summery_controller.dart';
 import 'package:salesman/controller/product_controller.dart';
 import 'package:salesman/controller/redeme_request_controller.dart';
@@ -65,6 +67,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProductController()),
         ChangeNotifierProvider(create: (_) => OrderController()),
         ChangeNotifierProvider(create: (_) => OrderSummaryController()),
+        ChangeNotifierProvider(create: (_) => NotificationController()),
+        ChangeNotifierProvider(create: (_) => ExpenseTypeController()),
       ],
       child: const MyApp(),
     ),

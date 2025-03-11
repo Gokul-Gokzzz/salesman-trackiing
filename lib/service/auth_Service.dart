@@ -130,14 +130,14 @@ class AuthService {
     );
   }
 
-  Future<LoginModel?> login(String name, String password) async {
-    log('Attempting login with Email: $name, Password: ${password.trim()}');
+  Future<LoginModel?> login(String phoneNumber, String password) async {
+    log('Attempting login with Email: $phoneNumber, Password: ${password.trim()}');
 
     try {
       final response = await _dio.post(
         '/login',
         data: {
-          "name": name,
+          "mobileNumber": int.parse(phoneNumber),
           "password": password.trim(),
         },
       );

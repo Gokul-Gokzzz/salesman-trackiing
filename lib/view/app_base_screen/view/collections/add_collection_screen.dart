@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:salesman/controller/client/get_client_controller.dart';
 import 'package:salesman/controller/collections/collection_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,7 +18,8 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
   final TextEditingController _amountController = TextEditingController();
   DateTime? _selectedDate;
   bool _isSubmitting = false;
-
+  List<String> clientSuggestions = [];
+  bool showSuggestions = false;
   void _pickDate() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -162,7 +164,51 @@ class _AddCollectionScreenState extends State<AddCollectionScreen> {
                         labelText: "Client Name",
                         border: OutlineInputBorder(),
                       ),
+                      onChanged: (value) async {
+                        final clientProvider =
+                            Provider.of<ClientProvider>(context, listen: false);
+                        final prefs = await SharedPreferences.getInstance();
+                        String? salesmanId = prefs.getString('id');
+                        if (salesmanId == null || salesmanId.isEmpty) return;
+                        await clientProvider.getClients(salesmanId);
+
+                        setState(() {
+                          if (value.isNotEmpty) {
+                            clientSuggestions = clientProvider.clients
+                                .where((client) => client.name
+                                    .toLowerCase()
+                                    .contains(value.toLowerCase()))
+                                .map((client) => client.name)
+                                .toList();
+                            showSuggestions = clientSuggestions.isNotEmpty;
+                          } else {
+                            clientSuggestions.clear();
+                            showSuggestions = false;
+                          }
+                        });
+                      },
                     ),
+                    if (showSuggestions)
+                      Container(
+                        height: 100,
+                        width: double.maxFinite,
+                        child: ListView.builder(
+                          itemCount: clientSuggestions.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              title: Text(clientSuggestions[index]),
+                              onTap: () {
+                                _clientController.text =
+                                    clientSuggestions[index];
+                                setState(() {
+                                  clientSuggestions.clear();
+                                  showSuggestions = false;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
                     const SizedBox(height: 15),
                     TextField(
                       controller: _amountController,

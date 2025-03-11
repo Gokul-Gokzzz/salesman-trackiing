@@ -310,6 +310,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                             await provider.updateClient(client!.id, data);
                         if (updated) {
                           Navigator.pop(context);
+                          Navigator.pop(context);
                         }
                       },
                       child: const Text("Save"),

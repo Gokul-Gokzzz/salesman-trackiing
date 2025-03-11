@@ -222,7 +222,11 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          attProvider.lastCheckIn != "Not Available"
+                          attProvider.lastCheckIn != "Not Available" ||
+                                  attProvider.lastCheckIn
+                                          .trim()
+                                          .toLowerCase() ==
+                                      "null".trim().toLowerCase()
                               ? DateFormat('yyyy-MM-dd HH:mm:ss').format(
                                   DateTime.parse(attProvider.lastCheckIn))
                               : "Not Available",
@@ -242,9 +246,18 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          attProvider.lastCheckOut != "Not Available"
+                          attProvider.lastCheckOut != "Not Available" ||
+                                  attProvider.lastCheckOut
+                                          .trim()
+                                          .toLowerCase() ==
+                                      "null".trim().toLowerCase()
                               ? DateFormat('yyyy-MM-dd HH:mm:ss').format(
-                                  DateTime.parse(attProvider.lastCheckOut))
+                                  DateTime.parse(attProvider.lastCheckOut
+                                              .trim()
+                                              .toLowerCase() ==
+                                          "null".trim().toLowerCase()
+                                      ? DateTime.now().toIso8601String()
+                                      : attProvider.lastCheckOut))
                               : "Not Available",
                           style: const TextStyle(
                               fontWeight: FontWeight.w400, fontSize: 15),

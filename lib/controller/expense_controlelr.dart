@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:salesman/model/add_expence_model.dart' show AddExpenseModel;
 import 'package:salesman/model/expense_model.dart';
@@ -69,18 +71,28 @@ class ExpenseController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future updateExpense(
+  Future<bool> updateExpense(
       BuildContext context, String expenseId, Map<String, dynamic> data) async {
-    bool success = await _expenseService.updateExpense(expenseId, data);
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Expense updated successfully")),
-      );
-      notifyListeners();
-    } else {
+    try {
+      bool success = await _expenseService.updateExpense(expenseId, data);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Expense updated successfully")),
+        );
+        notifyListeners();
+        return true; // Explicitly return true
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to update expense")),
+        );
+        return false; // Explicitly return false
+      }
+    } catch (e) {
+      log('Error in updateExpense controller: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Failed to update expense")),
       );
+      return false; // Return false in case of an error
     }
   }
 
