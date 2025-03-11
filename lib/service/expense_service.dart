@@ -13,8 +13,9 @@ class ExpenseService {
     try {
       final response = await _dio.get("$_baseUrl/$salesmanId");
       if (response.statusCode == 200) {
-        return GetExpenseModel.fromJson(response.data);
+        return GetExpenseModel.fromJson(response.data['expenses']);
       }
+      log("response : $response");
     } catch (e) {
       log('Error fetching expenses: $e');
     }

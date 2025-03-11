@@ -425,29 +425,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                                   ],
                                                 ),
                                                 const SizedBox(height: 10),
-                                                // Row(
-                                                //   children: [
-                                                //     const Text(
-                                                //       "Type: ",
-                                                //       style: TextStyle(
-                                                //         fontWeight:
-                                                //             FontWeight.w500,
-                                                //         fontSize: 13,
-                                                //         color:
-                                                //             Color(0XFF094497),
-                                                //       ),
-                                                //     ),
-                                                //     Text(
-                                                //       expense.expenseType ??
-                                                //           "N/A",
-                                                //       style: const TextStyle(
-                                                //         fontWeight:
-                                                //             FontWeight.w500,
-                                                //         fontSize: 13,
-                                                //       ),
-                                                //     ),
-                                                //   ],
-                                                // ),
                                                 const SizedBox(height: 10),
                                                 Row(
                                                   crossAxisAlignment:
