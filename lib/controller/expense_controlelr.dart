@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:salesman/model/add_expence_model.dart' show AddExpenseModel;
 import 'package:salesman/model/expense_model.dart';
@@ -8,10 +7,13 @@ import 'package:salesman/service/expense_service.dart';
 class ExpenseController extends ChangeNotifier {
   final ExpenseService _expenseService = ExpenseService();
   List<Expense> _expenses = [];
+  List<Expense> _filteredExpenses = [];
   bool _isLoading = false;
   String? errorMessage;
   AddExpenseModel? addExpenseResponse;
-  List<Expense> get expenses => _expenses;
+  String _searchQuery = '';
+
+  List<Expense> get expenses => _filteredExpenses;
   bool get isLoading => _isLoading;
 
   Future<void> loadExpenses(String salesmanId) async {
@@ -22,8 +24,26 @@ class ExpenseController extends ChangeNotifier {
     if (expenseModel != null) {
       _expenses = expenseModel.expenses ?? [];
     }
-
+    applyFilter();
     _isLoading = false;
+    notifyListeners();
+  }
+
+  void updateSearchQuery(String query) {
+    _searchQuery = query.toLowerCase();
+    applyFilter();
+  }
+
+  void applyFilter() {
+    if (_searchQuery.isEmpty) {
+      _filteredExpenses = _expenses;
+    } else {
+      _filteredExpenses = _expenses.where((expense) {
+        return expense.notes!.toLowerCase().contains(_searchQuery) ||
+            expense.expenseType!.toLowerCase().contains(_searchQuery) ||
+            expense.amount.toString().contains(_searchQuery);
+      }).toList();
+    }
     notifyListeners();
   }
 
@@ -66,7 +86,7 @@ class ExpenseController extends ChangeNotifier {
     if (expenseModel != null) {
       _expenses = expenseModel.expenses ?? [];
     }
-
+    applyFilter();
     _isLoading = false;
     notifyListeners();
   }
@@ -80,19 +100,19 @@ class ExpenseController extends ChangeNotifier {
           const SnackBar(content: Text("Expense updated successfully")),
         );
         notifyListeners();
-        return true; // Explicitly return true
+        return true;
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Failed to update expense")),
         );
-        return false; // Explicitly return false
+        return false;
       }
     } catch (e) {
       log('Error in updateExpense controller: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Failed to update expense")),
       );
-      return false; // Return false in case of an error
+      return false;
     }
   }
 
@@ -102,7 +122,7 @@ class ExpenseController extends ChangeNotifier {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Expense deleted successfully")),
       );
-      Navigator.pop(context); // Go back after deletion
+      Navigator.pop(context);
       notifyListeners();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
