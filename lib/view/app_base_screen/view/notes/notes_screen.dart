@@ -19,6 +19,9 @@ class NotesScreen extends StatefulWidget {
 }
 
 class _NotesScreenState extends State<NotesScreen> {
+  TextEditingController _searchController = TextEditingController();
+  String _searchText = '';
+
   @override
   void initState() {
     super.initState();
@@ -26,6 +29,26 @@ class _NotesScreenState extends State<NotesScreen> {
       Provider.of<NoteController>(context, listen: false)
           .fetchNotesForSalesman();
     });
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      _searchText = _searchController.text;
+    });
+  }
+
+  List<GetNoteModel> _filterNotes(List<GetNoteModel> notes) {
+    if (_searchText.isEmpty) {
+      return notes;
+    }
+    return notes
+        .where((note) =>
+            (note.title?.toLowerCase().contains(_searchText.toLowerCase()) ??
+                false) ||
+            (note.note?.toLowerCase().contains(_searchText.toLowerCase()) ??
+                false))
+        .toList();
   }
 
   @override
@@ -38,6 +61,7 @@ class _NotesScreenState extends State<NotesScreen> {
       backgroundColor: const Color(0xffF2F2F2),
       body: Consumer<NoteController>(
         builder: (context, controller, child) {
+          List<GetNoteModel> filteredNotes = _filterNotes(controller.notes);
           return SingleChildScrollView(
             child: Column(
               children: [
@@ -115,106 +139,23 @@ class _NotesScreenState extends State<NotesScreen> {
                               ),
                               TextField(
                                 controller: titleController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.text,
                                 decoration: const InputDecoration(
                                   labelText: "Title",
                                   border: OutlineInputBorder(),
                                 ),
                               ),
-                              // const Text(
-                              //   "Title",
-                              //   style: TextStyle(
-                              //       fontSize: 13, fontWeight: FontWeight.w400),
-                              // ),
-                              // const SizedBox(
-                              //   height: 10,
-                              // ),
-                              // SizedBox(
-                              //   height: 30,
-                              //   child: TextField(
-                              //     controller: titleController,
-                              //     decoration: InputDecoration(
-                              //       hintText: "Title",
-                              //       border: OutlineInputBorder(
-                              //         borderRadius: BorderRadius.circular(2),
-                              //         borderSide: const BorderSide(
-                              //             color: Color(0XFF094497)),
-                              //       ),
-                              //       focusedBorder: OutlineInputBorder(
-                              //         borderRadius: BorderRadius.circular(2),
-                              //         borderSide: const BorderSide(
-                              //             color: Color(0XFF094497)),
-                              //       ),
-                              //       enabledBorder: OutlineInputBorder(
-                              //         borderRadius: BorderRadius.circular(2),
-                              //         borderSide: const BorderSide(
-                              //             color: Color(0XFF094497)),
-                              //       ),
-                              //       contentPadding: const EdgeInsets.symmetric(
-                              //         vertical: 8.0,
-                              //         horizontal: 8.0,
-                              //       ),
-                              //     ),
-                              //     style: const TextStyle(
-                              //         fontSize: 10,
-                              //         fontWeight: FontWeight.bold),
-                              //   ),
-                              // ),
                               const SizedBox(
                                 height: 10,
                               ),
                               TextField(
                                 controller: noteController,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.text,
                                 decoration: const InputDecoration(
                                   labelText: "Note",
                                   border: OutlineInputBorder(),
                                 ),
                               ),
-                              // const Text(
-                              //   "Note",
-                              //   style: TextStyle(
-                              //       fontSize: 13, fontWeight: FontWeight.w400),
-                              // ),
-                              // const SizedBox(
-                              //   height: 10,
-                              // ),
-                              // SizedBox(
-                              //   height: 58,
-                              //   child: TextField(
-                              //     controller: noteController,
-                              //     maxLines: null,
-                              //     keyboardType: TextInputType.multiline,
-                              //     decoration: InputDecoration(
-                              //       border: OutlineInputBorder(
-                              //         borderRadius: BorderRadius.circular(2),
-                              //         borderSide: const BorderSide(
-                              //             color: Color(0XFF094497)),
-                              //       ),
-                              //       focusedBorder: OutlineInputBorder(
-                              //         borderRadius: BorderRadius.circular(2),
-                              //         borderSide: const BorderSide(
-                              //             color: Color(0XFF094497)),
-                              //       ),
-                              //       enabledBorder: OutlineInputBorder(
-                              //         borderRadius: BorderRadius.circular(2),
-                              //         borderSide: const BorderSide(
-                              //             color: Color(0XFF094497)),
-                              //       ),
-                              //       contentPadding: const EdgeInsets.symmetric(
-                              //         vertical: 5.0,
-                              //         horizontal: 8.0,
-                              //       ),
-                              //     ),
-                              //     style: const TextStyle(
-                              //       fontSize: 10,
-                              //     ),
-                              //     scrollPadding: const EdgeInsets.all(10.0),
-                              //   ),
-                              // ),
-                              // const SizedBox(
-                              //   height: 15,
-                              // ),
                               ElevatedButton(
                                 onPressed: () async {
                                   String title = titleController.text.trim();
@@ -307,16 +248,24 @@ class _NotesScreenState extends State<NotesScreen> {
                             fontSize: 15, fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 12),
+                      TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Search Notes',
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
                       controller.isLoading
                           ? const Center(child: CircularProgressIndicator())
-                          : controller.notes.isEmpty
+                          : filteredNotes.isEmpty
                               ? const Center(child: Text("No notes available"))
                               : ListView.builder(
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: controller.notes.length,
+                                  itemCount: filteredNotes.length,
                                   itemBuilder: (context, index) {
-                                    GetNoteModel note = controller.notes[index];
+                                    GetNoteModel note = filteredNotes[index];
                                     return NoteCard(note: note);
                                   },
                                 ),

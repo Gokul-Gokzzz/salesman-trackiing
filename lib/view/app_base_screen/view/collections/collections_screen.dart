@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:salesman/controller/collections/collection_controller.dart';
+import 'package:salesman/model/collection_model.dart';
 import 'package:salesman/view/app_base_screen/view/collections/add_collection_screen.dart';
 import 'package:salesman/view/app_base_screen/view/collections/collection_details_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +17,8 @@ class CollectionsScreen extends StatefulWidget {
 }
 
 class _CollectionsScreenState extends State<CollectionsScreen> {
+  TextEditingController _searchController = TextEditingController();
+  String _searchText = '';
   // final String salesmanId = "123"; // Replace with actual salesman ID
 
   @override
@@ -23,6 +26,13 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchCollections();
+    });
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      _searchText = _searchController.text;
     });
   }
 
@@ -44,6 +54,24 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
     // Fetch collections using Provider
     Provider.of<CollectionProvider>(context, listen: false)
         .getCollections(salesmanId);
+  }
+
+  List<GetCollection> _filterCollections(List<GetCollection> notes) {
+    if (_searchText.isEmpty) {
+      return notes;
+    }
+    return notes
+        .where((collection) =>
+            (collection.clientName
+                    ?.toLowerCase()
+                    .contains(_searchText.toLowerCase()) ??
+                false) ||
+            (collection.amount
+                    ?.toString()
+                    .toLowerCase()
+                    .contains(_searchText.toLowerCase()) ??
+                false))
+        .toList();
   }
 
   @override
@@ -95,6 +123,8 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
             Expanded(
               child: Consumer<CollectionProvider>(
                 builder: (context, collectionProvider, child) {
+                  List<GetCollection> filteredCollections =
+                      _filterCollections(collectionProvider.collections);
                   if (collectionProvider.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
@@ -122,7 +152,15 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                           ),
                         ),
                         const SizedBox(height: 30),
-                        if (collections.isNotEmpty) ...[
+                        TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            labelText: 'Search Collections',
+                            prefixIcon: Icon(Icons.search),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        if (filteredCollections.isNotEmpty) ...[
                           Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
@@ -156,7 +194,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                                 ),
                                 const Divider(),
                                 for (var i = 0;
-                                    i < collections.length;
+                                    i < filteredCollections.length;
                                     i++) ...[
                                   GestureDetector(
                                     onTap: () async {
@@ -166,7 +204,8 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                                               builder: (context) =>
                                                   CollectionDetailsScreen(
                                                       collectionId:
-                                                          collections[i].id)));
+                                                          filteredCollections[i]
+                                                              .id)));
                                       if (result == true) {
                                         setState(() {
                                           _fetchCollections(); // Refresh the collections when returning
@@ -223,7 +262,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                                                       color: Color(0XFF094497)),
                                                 ),
                                                 Text(
-                                                  "₹${collections[i].amount}",
+                                                  "₹${filteredCollections[i].amount}",
                                                   style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.w400,

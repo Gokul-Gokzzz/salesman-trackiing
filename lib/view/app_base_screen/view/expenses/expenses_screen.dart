@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:salesman/controller/expense_controlelr.dart';
 import 'package:salesman/controller/expenses_type_controller.dart';
+import 'package:salesman/model/add_expence_model.dart';
 import 'package:salesman/model/order/expenses_type_model.dart';
 import 'package:salesman/view/app_base_screen/view/expenses/expenses_details_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,8 +71,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     final expenses = expenseController.expenses;
     final isLoading = expenseController.isLoading;
     final expenseTypeController = context.watch<ExpenseTypeController>();
-    final expenseTypes = expenseTypeController.expenseTypes;
+    // final expenseTypes = expenseTypeController.expenseTypes;
     final expenseTypesLoading = expenseTypeController.isLoading;
+
     return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
       body: RefreshIndicator(
@@ -425,6 +427,29 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                                   ],
                                                 ),
                                                 const SizedBox(height: 10),
+                                                Row(
+                                                  children: [
+                                                    const Text(
+                                                      "Type: ",
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontSize: 13,
+                                                        color:
+                                                            Color(0XFF094497),
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      expense.expenseType ??
+                                                          "N/A",
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                                 const SizedBox(height: 10),
                                                 Row(
                                                   crossAxisAlignment:

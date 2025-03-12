@@ -8,7 +8,7 @@ import 'package:salesman/model/client/get_client_model.dart';
 import 'package:salesman/view/app_base_screen/view/clients/add_client_screen.dart';
 import 'package:salesman/view/app_base_screen/view/clients/client_details_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart'; // Assuming you have this screen
+import 'package:url_launcher/url_launcher.dart';
 
 class ClientListScreen extends StatefulWidget {
   const ClientListScreen({super.key});
@@ -18,12 +18,13 @@ class ClientListScreen extends StatefulWidget {
 }
 
 class _ClientListScreenState extends State<ClientListScreen> {
+  TextEditingController _searchController = TextEditingController();
+  List<ClientModel> _filteredClients = [];
+
   @override
   void initState() {
     super.initState();
     _fetchClients();
-    // Future.microtask(() =>
-    // Provider.of<ClientProvider>(context, listen: false).getClients());
   }
 
   Future<void> _fetchClients() async {
@@ -44,7 +45,29 @@ class _ClientListScreenState extends State<ClientListScreen> {
     if (mounted) {
       await Provider.of<ClientProvider>(context, listen: false)
           .getClients(salesmanId);
+      _updateFilteredList();
     }
+  }
+
+  void _updateFilteredList() {
+    final provider = Provider.of<ClientProvider>(context, listen: false);
+    setState(() {
+      _filteredClients = provider.clients;
+    });
+  }
+
+  void _filterClients(String query) {
+    final provider = Provider.of<ClientProvider>(context, listen: false);
+    setState(() {
+      _filteredClients = provider.clients
+          .where((client) =>
+              client.name!.toLowerCase().contains(query.toLowerCase()) ||
+              (client.companyName != null &&
+                  client.companyName!
+                      .toLowerCase()
+                      .contains(query.toLowerCase())))
+          .toList();
+    });
   }
 
   @override
@@ -55,16 +78,18 @@ class _ClientListScreenState extends State<ClientListScreen> {
         builder: (context, clientProvider, child) {
           return RefreshIndicator(
             onRefresh: _fetchClients,
-            child: Column(
-              children: [
-                _buildHeader(context),
-                Expanded(
-                  child: Padding(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildHeader(context),
+                  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 13.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 30.75),
+                        const SizedBox(height: 20),
+                        _buildSearchBar(),
+                        const SizedBox(height: 20),
                         const Text(
                           "Clients",
                           style: TextStyle(
@@ -78,18 +103,21 @@ class _ClientListScreenState extends State<ClientListScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                         ),
-                        const SizedBox(height: 30.75),
+                        const SizedBox(height: 20),
                         if (clientProvider.isLoading)
                           const Center(child: CircularProgressIndicator())
-                        else if (clientProvider.clients.isEmpty)
-                          const Center(child: Text("No clients added yet."))
+                        else if (_filteredClients.isEmpty)
+                          const Center(child: Text("No clients found."))
                         else
-                          Expanded(
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.3,
                             child: ListView.builder(
-                              itemCount: clientProvider.clients.length,
+                              shrinkWrap: true,
+                              physics: AlwaysScrollableScrollPhysics(),
+                              itemCount: _filteredClients.length,
                               itemBuilder: (context, index) {
                                 return _buildClientListItem(
-                                    clientProvider.clients[index]);
+                                    _filteredClients[index]);
                               },
                             ),
                           ),
@@ -97,8 +125,8 @@ class _ClientListScreenState extends State<ClientListScreen> {
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
@@ -110,11 +138,28 @@ class _ClientListScreenState extends State<ClientListScreen> {
             MaterialPageRoute(builder: (context) => const AddClientScreen()),
           ).then((_) {
             _fetchClients();
-            // Provider.of<ClientProvider>(context, listen: false).getClients();
           });
         },
         backgroundColor: const Color(0XFF094497),
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return TextField(
+      controller: _searchController,
+      onChanged: _filterClients,
+      decoration: InputDecoration(
+        hintText: "Search Clients...",
+        prefixIcon: const Icon(Icons.search, color: Colors.grey),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 10),
       ),
     );
   }
@@ -177,15 +222,12 @@ class _ClientListScreenState extends State<ClientListScreen> {
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius:
-                  BorderRadius.circular(8), // Slight rounding for aesthetics
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                // Circular Avatar with First Letter of Name
                 CircleAvatar(
-                  backgroundColor:
-                      Colors.amber, // Matches the image color scheme
+                  backgroundColor: Colors.amber,
                   radius: 20,
                   child: Text(
                     client.name != null && client.name!.isNotEmpty
@@ -199,8 +241,6 @@ class _ClientListScreenState extends State<ClientListScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-
-                // Client Name and Contact Details
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,11 +253,19 @@ class _ClientListScreenState extends State<ClientListScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      if (client.companyName != null &&
+                          client.companyName!.isNotEmpty)
+                        Text(
+                          client.companyName!,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                     ],
                   ),
                 ),
-
-                // Call Icon
                 GestureDetector(
                   onTap: () {
                     _launchDialer(client.contact);
@@ -228,14 +276,11 @@ class _ClientListScreenState extends State<ClientListScreen> {
             ),
           ),
         ),
-
-        // Space between each client item
         const SizedBox(height: 10),
       ],
     );
   }
 
-// Function to launch the phone dialer
   void _launchDialer(String? phoneNumber) async {
     if (phoneNumber != null && phoneNumber.isNotEmpty) {
       final Uri url = Uri.parse('tel:$phoneNumber');

@@ -16,6 +16,9 @@ class ScheduledMeetings extends StatefulWidget {
 }
 
 class _ScheduledMeetingsState extends State<ScheduledMeetings> {
+  TextEditingController _searchController = TextEditingController();
+  List<GetMeeting> _filteredMeetings = [];
+
   Future<void> _fetchMeeting() async {
     final prefs = await SharedPreferences.getInstance();
     String? salesmanId = prefs.getString('id');
@@ -29,6 +32,7 @@ class _ScheduledMeetingsState extends State<ScheduledMeetings> {
 
     log("✅ Salesman ID: $salesmanId");
     await context.read<GetMeetingController>().getMeetings(salesmanId);
+    _updateFilteredMeetings();
   }
 
   @override
@@ -37,12 +41,30 @@ class _ScheduledMeetingsState extends State<ScheduledMeetings> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchMeeting();
     });
+
+    _searchController.addListener(() {
+      _updateFilteredMeetings();
+    });
+  }
+
+  void _updateFilteredMeetings() {
+    final meetingController = context.read<GetMeetingController>();
+    final query = _searchController.text.toLowerCase();
+
+    setState(() {
+      _filteredMeetings = meetingController.meetings!
+          .where((meeting) =>
+                  meeting.agenda!.toLowerCase().contains(query) ||
+                  meeting.locationType!.toLowerCase().contains(query)
+              // meeting.createdAt!.toLowerCase().contains(query)
+              )
+          .toList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final meetingController = context.watch<GetMeetingController>();
-    final meetings = meetingController.meetings;
     final isLoading = meetingController.isLoading;
 
     return Scaffold(
@@ -87,46 +109,41 @@ class _ScheduledMeetingsState extends State<ScheduledMeetings> {
             ],
           ),
 
-          // Content Section
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.all(13.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: "Search Meetings...",
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            ),
+          ),
+
+          // Meeting List
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 13.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Scheduled Meetings",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  Container(
-                    height: 3,
-                    width: 109.02,
-                    decoration: BoxDecoration(
-                      color: const Color(0XFF094497),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Meeting List
-                  Expanded(
-                    child: isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : (meetings == null || meetings.isEmpty)
-                            ? const Center(
-                                child: Text('No meetings scheduled.'))
-                            : ListView.builder(
-                                padding: EdgeInsets.zero,
-                                itemCount: meetings.length,
-                                itemBuilder: (context, index) {
-                                  GetMeeting meeting = meetings[index];
-                                  return MeetingCard(
-                                      meeting: meeting, index: index);
-                                },
-                              ),
-                  ),
-                ],
-              ),
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : (_filteredMeetings.isEmpty)
+                      ? const Center(child: Text('No meetings found.'))
+                      : ListView.builder(
+                          padding: EdgeInsets.zero,
+                          itemCount: _filteredMeetings.length,
+                          itemBuilder: (context, index) {
+                            return MeetingCard(
+                                meeting: _filteredMeetings[index],
+                                index: index);
+                          },
+                        ),
             ),
           ),
 
