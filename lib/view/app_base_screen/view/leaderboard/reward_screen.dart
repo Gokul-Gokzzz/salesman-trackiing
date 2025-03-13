@@ -234,8 +234,15 @@ class RewardCard extends StatelessWidget {
 
                   final provider =
                       Provider.of<RedemptionProvider>(context, listen: false);
-                  provider.redeemReward(userId,
-                      reward.id.toString()); // Reward ID is hardcoded for now
+                  bool redeemed = await provider.redeemReward(
+                      userId, reward.id.toString()); // Redeem reward
+
+                  if (redeemed) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("Reward redeemed successfully")),
+                    );
+                  }
                 },
                 child: const Text(
                   "Redeem",

@@ -1,57 +1,78 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
+import 'package:salesman/model/attandence/check_in_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class CheckInService {
+class CheckInCheckOutService {
   final Dio _dio = Dio();
-  final String _baseUrl = "https://salesman-tracking-app.onrender.com/api/";
+  final String baseUrl =
+      "https://salesman-tracking-app.onrender.com/api/attendance";
 
-  Future<Map<String, dynamic>> checkIn(
-      {required String salesmanId,
-      required String location,
-      String? authToken}) async {
+  Future<Attendance?> checkIn(String salesmanId, String location) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('auth_token');
+
+      if (token == null || token.isEmpty) {
+        throw Exception("No authentication token found.");
+      }
+
       Response response = await _dio.post(
-        "$_baseUrl/check-in",
+        '$baseUrl/check-in',
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        }),
         data: {
           "salesman": salesmanId,
           "location": location,
         },
-        options: Options(
-          headers: {
-            if (authToken != null) 'Authorization': 'Bearer $authToken',
-            "Content-Type": "application/json",
-          },
-        ),
       );
 
-      if (response.statusCode == 200) {
-        return {"success": true, "data": response.data};
+      if (response.statusCode == 201) {
+        final data = response.data['attendance'];
+        if (data == null) {
+          throw Exception("Error: 'attendance' field is missing in response");
+        }
+        Attendance attendance = Attendance.fromJson(data);
+        return attendance;
       } else {
-        return {"success": false, "message": "Check-in failed"};
+        throw Exception("Failed to check-in: ${response.statusMessage}");
       }
     } catch (e) {
-      return {"success": false, "message": "An error occurred: $e"};
+      // log('"Error during check-in: $e"');
+      throw Exception("Error during check-in: $e");
     }
   }
 
-  Future<Map<String, dynamic>> checkOut({String? authToken}) async {
+  Future<bool> checkOut(String attendanceId) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('auth_token');
+
+      if (token == null) {
+        throw Exception("No authentication token found.");
+      }
+
       Response response = await _dio.put(
-        "$_baseUrl/check-out",
-        options: Options(
-          headers: {
-            if (authToken != null) 'Authorization': 'Bearer $authToken',
-            "Content-Type": "application/json",
-          },
-        ),
+        '$baseUrl/check-out/$attendanceId',
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        }),
+        data: {
+          "timestamp": DateTime.now().toIso8601String(),
+        },
       );
 
       if (response.statusCode == 200) {
-        return {"success": true, "data": response.data};
+        return true;
       } else {
-        return {"success": false, "message": "Check-out failed"};
+        throw Exception("Failed to check-out: ${response.statusMessage}");
       }
     } catch (e) {
-      return {"success": false, "message": "An error occurred: $e"};
+      throw Exception("Error during check-out: $e");
     }
   }
 }

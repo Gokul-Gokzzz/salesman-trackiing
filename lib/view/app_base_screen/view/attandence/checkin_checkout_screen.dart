@@ -9,6 +9,7 @@ import 'package:salesman/controller/attandence/attendence_controller.dart';
 import 'package:salesman/controller/auth_conroller.dart';
 import 'package:salesman/controller/attandence/check_in_controller.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:salesman/model/attandence/check_in_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CheckinCheckoutScreen extends StatefulWidget {
@@ -19,9 +20,36 @@ class CheckinCheckoutScreen extends StatefulWidget {
 }
 
 class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
-  final CheckInController checkInController = CheckInController();
+  final CheckInCheckOutController _attendanceController =
+      CheckInCheckOutController();
+  Attendance? _currentAttendance; // Store the current attendance record
+  String? _lastCheckIn;
+  String? _lastCheckOut;
 
   Future<String> _getLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      log("❌ Location services are disabled.");
+      return "Location Disabled";
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        log("❌ Location permissions denied.");
+        return "Permission Denied";
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      log("❌ Location permissions are permanently denied.");
+      return "Permission Denied";
+    }
+
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
     return "${position.latitude}, ${position.longitude}";
@@ -49,57 +77,72 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
 
   void _handleCheckIn() async {
     final prefs = await SharedPreferences.getInstance();
-    String? salesmanId =
-        prefs.getString('id'); // Retrieve ID from SharedPreferences
+    String? salesmanId = prefs.getString('id');
 
     if (salesmanId == null || salesmanId.isEmpty) {
       log("❌ Salesman ID is null or empty!");
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Salesman ID not found")));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Salesman ID not found")));
+      }
       return;
     }
 
     log("✅ Salesman ID: $salesmanId");
-    String location = await _getLocation(); // Fetch location
+    String location = await _getLocation();
 
-    await checkInController.handleCheckIn(context, salesmanId, location);
-    final attProvider =
-        Provider.of<AttendanceController>(context, listen: false);
+    _currentAttendance =
+        await _attendanceController.checkIn(salesmanId, location);
 
-    setState(() {
-      attProvider.lastCheckIn =
-          DateTime.now().toLocal().toString().split('.')[0];
-    });
+    if (_currentAttendance != null && mounted) {
+      setState(() {
+        _lastCheckIn = DateTime.now().toLocal().toString().split('.')[0];
+        _lastCheckOut = null; // Reset checkout time
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Checked in successfully")));
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Failed to check in")));
+    }
   }
 
   void _handleCheckOut() async {
     final Logger _logger = Logger();
 
-    // Ensure there is a stored attendance ID
-    if (checkInController.lastAttendanceId == null) {
+    if (_currentAttendance?.id == null) {
       _logger.e("❌ No attendance record found for checkout.");
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("No valid check-in record found!")));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("No valid check-in record found!")));
+      }
       return;
     }
 
-    await checkInController.handleCheckOut(context);
-    final attProvider =
-        Provider.of<AttendanceController>(context, listen: false);
+    bool checkedOut =
+        await _attendanceController.checkOut(_currentAttendance!.id.toString());
 
-    // Store check-out timestamp
-    setState(() {
-      attProvider.lastCheckOut =
-          DateTime.now().toLocal().toString().split('.')[0];
-    });
+    if (checkedOut && mounted) {
+      setState(() {
+        _lastCheckOut = DateTime.now().toLocal().toString().split('.')[0];
+        _currentAttendance = null; // Clear current attendance
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Checked out successfully")));
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Failed to check out")));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final attProvider =
+    final attendanceController =
         Provider.of<AttendanceController>(context, listen: false);
-    attProvider.getAttendance();
+    // final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // final attProvider =
+    //     Provider.of<AttendanceController>(context, listen: false);
+    // attProvider.getAttendance();
     return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
       appBar: AppBar(
@@ -222,17 +265,19 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          attProvider.lastCheckIn != "Not Available" ||
-                                  attProvider.lastCheckIn
-                                          .trim()
-                                          .toLowerCase() ==
-                                      "null".trim().toLowerCase()
-                              ? DateFormat('yyyy-MM-dd HH:mm:ss').format(
-                                  DateTime.parse(attProvider.lastCheckIn))
-                              : "Not Available",
+                          _currentAttendance?.checkInTime?.toString() ?? '',
+                          // (attProvider.lastCheckIn != "Not Available" &&
+                          //         attProvider.lastCheckIn
+                          //                 .trim()
+                          //                 .toLowerCase() !=
+                          //             "null")
+                          //     ? DateFormat('yyyy-MM-dd HH:mm:ss').format(
+                          //         DateTime.tryParse(attProvider.lastCheckIn) ??
+                          //             DateTime.now())
+                          //     : "Not Available",
                           style: const TextStyle(
-                              fontWeight: FontWeight.w400, fontSize: 15),
-                        )
+                              fontWeight: FontWeight.w400, fontSize: 13),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 30),
@@ -246,19 +291,20 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          attProvider.lastCheckOut != "Not Available" ||
-                                  attProvider.lastCheckOut
-                                          .trim()
-                                          .toLowerCase() ==
-                                      "null".trim().toLowerCase()
-                              ? DateFormat('yyyy-MM-dd HH:mm:ss').format(
-                                  DateTime.parse(attProvider.lastCheckOut
-                                              .trim()
-                                              .toLowerCase() ==
-                                          "null".trim().toLowerCase()
-                                      ? DateTime.now().toIso8601String()
-                                      : attProvider.lastCheckOut))
-                              : "Not Available",
+                          _currentAttendance?.checkOutTime?.toString() ?? '',
+                          // attProvider.lastCheckOut != "Not Available" ||
+                          //         attProvider.lastCheckOut
+                          //                 .trim()
+                          //                 .toLowerCase() ==
+                          //             "null".trim().toLowerCase()
+                          //     ? DateFormat('yyyy-MM-dd HH:mm:ss').format(
+                          //         DateTime.parse(attProvider.lastCheckOut
+                          //                     .trim()
+                          //                     .toLowerCase() ==
+                          //                 "null".trim().toLowerCase()
+                          //             ? DateTime.now().toIso8601String()
+                          //             : attProvider.lastCheckOut))
+                          //     : "Not Available",
                           style: const TextStyle(
                               fontWeight: FontWeight.w400, fontSize: 15),
                         )

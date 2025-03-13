@@ -452,7 +452,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                         backgroundColor:
                                             const Color(0XFF094497)),
                                     onPressed: () {
-                                      Navigator.pushReplacement(
+                                      Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
@@ -480,7 +480,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                         backgroundColor:
                                             const Color(0XFFF2F2F2)),
                                     onPressed: () {
-                                      Navigator.pushReplacement(
+                                      Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>

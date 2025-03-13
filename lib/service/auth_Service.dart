@@ -164,12 +164,6 @@ class AuthService {
     }
   }
 
-  // Future<void> _saveUserData(Map<String, dynamic> data) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   await prefs.setString('auth_token', data['token']);
-  //   await prefs.setString('user_name', data['user']['name'] ?? '');
-  //   log('✅ User Data Saved: ${data['user']}');
-  // }
   Future<void> _saveUserData(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', data['token']);

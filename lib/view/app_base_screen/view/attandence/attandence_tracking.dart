@@ -19,11 +19,11 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadAttendanceData();
+      loadAttendanceData();
     });
   }
 
-  Future<void> _loadAttendanceData() async {
+  Future<void> loadAttendanceData() async {
     final attendanceController =
         Provider.of<AttendanceController>(context, listen: false);
     final prefs = await SharedPreferences.getInstance();

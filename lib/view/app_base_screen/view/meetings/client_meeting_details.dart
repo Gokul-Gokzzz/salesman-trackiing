@@ -118,7 +118,7 @@ class _ClientMeetingDetailsScreenState
         _clientController.text.isEmpty ||
         _selectedDateTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please fill all required fields")),
+        const SnackBar(content: Text("Please fill all required fields")),
       );
       return;
     }
@@ -147,10 +147,13 @@ class _ClientMeetingDetailsScreenState
       notes: _notesController.text,
       repeatFrequency: _selectedRepeatFrequency ?? '',
       followUpReminder: _followUpReminder,
-      // attachment: _selectedFile?.path,
     );
 
-    meetingController.createMeeting(newMeeting, context);
+    bool success = await meetingController.createMeeting(newMeeting, context);
+
+    if (success) {
+      Navigator.pop(context); // Pop back if meeting added successfully
+    }
   }
 
   @override

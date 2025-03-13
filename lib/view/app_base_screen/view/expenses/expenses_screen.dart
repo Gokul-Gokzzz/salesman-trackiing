@@ -341,6 +341,26 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                       const SizedBox(
                         height: 10,
                       ),
+                      SearchBar(
+                        elevation: WidgetStatePropertyAll(0),
+                        hintText: "Search by amount or Type",
+                        leading: Icon(Icons.search),
+                        onChanged: (query) =>
+                            expenseController.updateSearchQuery(query),
+                      ),
+                      // TextField(
+                      //   onChanged: (query) => expenseController.updateSearchQuery(query),
+                      //   decoration: InputDecoration(
+                      //     labelText: "Search Expenses",
+                      //     prefixIcon: Icon(Icons.search),
+                      //     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      //     filled: true,
+                      //     fillColor: Colors.white,
+                      //   ),
+                      // ),
+                      const SizedBox(
+                        height: 10,
+                      ),
                       isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : expenses.isEmpty
