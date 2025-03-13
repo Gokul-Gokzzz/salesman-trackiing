@@ -29,12 +29,13 @@ import 'package:salesman/controller/redeme_request_controller.dart';
 import 'package:salesman/controller/reward_controller.dart';
 import 'package:salesman/controller/reward_history_controller.dart';
 import 'package:salesman/controller/take_order_provider.dart';
+import 'package:salesman/service/shared_preference.dart';
 import 'package:salesman/view/app_base_screen/view/clients/client_list_screen.dart';
 import 'package:salesman/view/app_base_screen/view/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await initSharedPrefs();
   // Start periodic location fetching
   startLocationUpdates();
 

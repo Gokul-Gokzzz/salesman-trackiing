@@ -10,6 +10,7 @@ import 'package:salesman/controller/auth_conroller.dart';
 import 'package:salesman/controller/attandence/check_in_controller.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:salesman/model/attandence/check_in_model.dart';
+import 'package:salesman/service/shared_preference.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CheckinCheckoutScreen extends StatefulWidget {
@@ -95,10 +96,17 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
         await _attendanceController.checkIn(salesmanId, location);
 
     if (_currentAttendance != null && mounted) {
+      String? attandanceid = _currentAttendance?.id;
+      String? checkedinTime = _currentAttendance?.checkInTime;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('attandanceId',attandanceid! );
+      await prefs.setString('checkedintime',checkedinTime! );
+      String? saveCheckInTime = prefs.getString('checkedintime');
       setState(() {
-        _lastCheckIn = DateTime.now().toLocal().toString().split('.')[0];
+        _lastCheckIn = saveCheckInTime;
         _lastCheckOut = null; // Reset checkout time
       });
+      await prefs.setString('checkedOutTime',"" );
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Checked in successfully")));
     } else {
@@ -109,8 +117,10 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
 
   void _handleCheckOut() async {
     final Logger _logger = Logger();
+    final prefs = await SharedPreferences.getInstance();
+    String? saveattandanceID = prefs.getString('attandanceId');
 
-    if (_currentAttendance?.id == null) {
+    if (saveattandanceID == null) {
       _logger.e("❌ No attendance record found for checkout.");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -120,11 +130,15 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
     }
 
     bool checkedOut =
-        await _attendanceController.checkOut(_currentAttendance!.id.toString());
+        await _attendanceController.checkOut(saveattandanceID.toString());
 
     if (checkedOut && mounted) {
+      String? checkedOutTime = DateTime.now().toLocal().toString().split('.')[0];
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('checkedOutTime',checkedOutTime! );
+      String? savedCheckoutTime = prefs.getString('checkedOutTime');
       setState(() {
-        _lastCheckOut = DateTime.now().toLocal().toString().split('.')[0];
+        _lastCheckOut = savedCheckoutTime;
         _currentAttendance = null; // Clear current attendance
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -265,7 +279,8 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          _currentAttendance?.checkInTime?.toString() ?? '',
+                          // _currentAttendance?.checkInTime?.toString() ?? '',
+                          prefs.getString('checkedintime') ?? '',
                           // (attProvider.lastCheckIn != "Not Available" &&
                           //         attProvider.lastCheckIn
                           //                 .trim()
@@ -291,7 +306,8 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          _currentAttendance?.checkOutTime?.toString() ?? '',
+                          // _currentAttendance?.checkOutTime?.toString() ?? '',
+                          prefs.getString('checkedOutTime') ?? '',
                           // attProvider.lastCheckOut != "Not Available" ||
                           //         attProvider.lastCheckOut
                           //                 .trim()

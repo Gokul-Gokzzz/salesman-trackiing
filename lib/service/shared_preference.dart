@@ -43,3 +43,10 @@ class AuthStorage {
     log('🚪 User Logged Out - Token Cleared');
   }
 }
+
+
+late SharedPreferences prefs;
+
+Future<void> initSharedPrefs() async {
+  prefs = await SharedPreferences.getInstance();
+}
