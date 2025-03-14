@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:salesman/model/collection_model.dart';
 import 'package:salesman/service/collections/collection_service.dart';
@@ -15,7 +17,7 @@ class CollectionProvider with ChangeNotifier {
     try {
       collections = await _service.fetchCollections(salesmanId);
     } catch (e) {
-      debugPrint("Error fetching collections: $e");
+      log("Error fetching collections: $e");
     }
 
     isLoading = false;

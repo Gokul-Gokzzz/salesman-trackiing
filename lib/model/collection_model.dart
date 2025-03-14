@@ -20,7 +20,9 @@ class GetCollection {
       id: json['_id'],
       client: json['client'],
       salesman: json['salesman'],
-      amount: json['amount'],
+      amount: (json['amount'] is int)
+          ? json['amount']
+          : (json['amount'] as num).toInt(),
       date: DateTime.parse(json['date']),
       clientName: json['clientName'],
     );

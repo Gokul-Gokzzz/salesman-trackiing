@@ -66,9 +66,7 @@ class _CollectionDetailsScreenState extends State<CollectionDetailsScreen> {
                     top: 40,
                     left: 15,
                     child: InkWell(
-                      onTap: () {
-                        Navigator.pop(context, true);
-                      },
+                      onTap: () => Navigator.pop(context, true),
                       child: SvgPicture.asset(
                         "assets/images/backbutton.svg",
                         color: Colors.white,
@@ -135,17 +133,25 @@ class _CollectionDetailsScreenState extends State<CollectionDetailsScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 20),
-                                  ElevatedButton(
-                                    onPressed: () => _showEditDialog(provider),
-                                    child: const Text("Edit"),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  ElevatedButton(
-                                    onPressed: () => _confirmDelete(provider),
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red),
-                                    child: const Text("Delete",
-                                        style: TextStyle(color: Colors.white)),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: () =>
+                                            _showEditDialog(provider),
+                                        child: const Text("Edit"),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () =>
+                                            _confirmDelete(provider),
+                                        style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.red),
+                                        child: const Text("Delete",
+                                            style:
+                                                TextStyle(color: Colors.white)),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -164,16 +170,21 @@ class _CollectionDetailsScreenState extends State<CollectionDetailsScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text("Delete Collection"),
-          content:
-              const Text("Are you sure you want to delete this collection?"),
+          content: const Text(
+            "If the client has Outstanding due the delete is not possible⚠🚫",
+            style: TextStyle(color: Colors.red, fontSize: 15),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
             TextButton(
-              onPressed: () {
-                provider.deleteCollection(provider.collection!.id, context);
+              onPressed: () async {
+                await provider.deleteCollection(
+                    provider.collection!.id, context);
+                Navigator.pop(context); // Close dialog
+                Navigator.pop(context, true); // Pop back with result
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text("Delete"),
@@ -183,6 +194,42 @@ class _CollectionDetailsScreenState extends State<CollectionDetailsScreen> {
       },
     );
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final shouldRefresh = ModalRoute.of(context)?.settings.arguments as bool?;
+    if (shouldRefresh == true) {
+      Provider.of<CollectionDetailsProvider>(context, listen: false)
+          .getCollectionDetails(widget.collectionId);
+    }
+  }
+
+  // void _confirmDelete(CollectionDetailsProvider provider) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: const Text("Delete Collection"),
+  //         content:
+  //             const Text("Are you sure you want to delete this collection?"),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context),
+  //             child: const Text("Cancel"),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               provider.deleteCollection(provider.collection!.id, context);
+  //             },
+  //             style: TextButton.styleFrom(foregroundColor: Colors.red),
+  //             child: const Text("Delete"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   void _showEditDialog(CollectionDetailsProvider provider) {
     amountController.text = provider.collection!.amount.toString();

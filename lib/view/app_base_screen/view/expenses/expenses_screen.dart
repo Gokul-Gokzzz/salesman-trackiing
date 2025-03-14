@@ -249,23 +249,21 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                             ),
                                           ),
                                           SizedBox(
-                                            width: 95,
+                                            width: 10,
                                           ),
-                                          Icon(
-                                            Icons.file_upload_outlined,
-                                            color: Colors.black,
-                                            size: 12,
-                                          )
+                                          // Icon(
+                                          //   Icons.file_upload_outlined,
+                                          //   color: Colors.black,
+                                          //   size: 12,
+                                          // )
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(
-                                      width: 5,
-                                    ),
+                                    // const SizedBox(
+                                    //   width: ,
+                                    // ),
                                     Text(
-                                      _receiptUrl != null
-                                          ? "File Selected"
-                                          : "No file chosen",
+                                      _receiptUrl ?? "No file chosen",
                                       style: TextStyle(
                                           fontWeight: FontWeight.w400,
                                           fontSize: 10.14,

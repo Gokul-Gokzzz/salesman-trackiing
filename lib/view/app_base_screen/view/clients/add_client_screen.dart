@@ -241,7 +241,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                           Border.all(color: Color(0XFF094497)),
                                       borderRadius: BorderRadius.circular(20)),
                                   child: ElevatedButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
                                       style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.white,
                                           elevation: 0),

@@ -69,119 +69,123 @@ class _ScheduledMeetingsState extends State<ScheduledMeetings> {
 
     return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
-      body: Column(
-        children: [
-          // Header Section
-          Stack(
-            children: [
-              Container(
-                height: 318,
-                width: double.maxFinite,
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(30),
-                    bottomRight: Radius.circular(30),
-                  ),
-                  image: DecorationImage(
-                    image: AssetImage("assets/images/meeting_bg.png"),
-                    fit: BoxFit.fill,
-                  ),
-                ),
-                child: const Center(
-                  child: Text(
-                    "Scheduled Meetings",
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+      body: RefreshIndicator(
+        onRefresh: _fetchMeeting,
+        child: Column(
+          children: [
+            // Header Section
+            Stack(
+              children: [
+                Container(
+                  height: 318,
+                  width: double.maxFinite,
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(30),
+                      bottomRight: Radius.circular(30),
+                    ),
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/meeting_bg.png"),
+                      fit: BoxFit.fill,
                     ),
                   ),
-                ),
-              ),
-              Positioned(
-                top: 40,
-                left: 15,
-                child: InkWell(
-                  onTap: () => Navigator.pop(context),
-                  child: SvgPicture.asset("assets/images/backbutton.svg"),
-                ),
-              ),
-            ],
-          ),
-
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(13.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: "Search Meetings...",
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
-          ),
-
-          // Meeting List
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 13.0),
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : (_filteredMeetings.isEmpty)
-                      ? const Center(child: Text('No meetings found.'))
-                      : ListView.builder(
-                          padding: EdgeInsets.zero,
-                          itemCount: _filteredMeetings.length,
-                          itemBuilder: (context, index) {
-                            return MeetingCard(
-                                meeting: _filteredMeetings[index],
-                                index: index);
-                          },
-                        ),
-            ),
-          ),
-
-          // Add New Meeting Button
-          const SizedBox(height: 20),
-          SizedBox(
-            width: 262,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ClientMeetingDetailsScreen()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0XFF094497), elevation: 0),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Add New Meeting",
+                  child: const Center(
+                    child: Text(
+                      "Scheduled Meetings",
                       style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 19,
-                          fontWeight: FontWeight.w500),
+                        fontSize: 30,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
-                    const SizedBox(width: 10),
-                    SvgPicture.asset("assets/images/forward_arrow.svg"),
-                  ],
+                  ),
+                ),
+                Positioned(
+                  top: 40,
+                  left: 15,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    child: SvgPicture.asset("assets/images/backbutton.svg"),
+                  ),
+                ),
+              ],
+            ),
+
+            // Search Bar
+            Padding(
+              padding: const EdgeInsets.all(13.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: "Search Meetings...",
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-        ],
+
+            // Meeting List
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 13.0),
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : (_filteredMeetings.isEmpty)
+                        ? const Center(child: Text('No meetings found.'))
+                        : ListView.builder(
+                            padding: EdgeInsets.zero,
+                            itemCount: _filteredMeetings.length,
+                            itemBuilder: (context, index) {
+                              return MeetingCard(
+                                  meeting: _filteredMeetings[index],
+                                  index: index);
+                            },
+                          ),
+              ),
+            ),
+
+            // Add New Meeting Button
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 262,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            const ClientMeetingDetailsScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0XFF094497), elevation: 0),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Add New Meeting",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 19,
+                            fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(width: 10),
+                      SvgPicture.asset("assets/images/forward_arrow.svg"),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
