@@ -232,17 +232,47 @@ class RewardCard extends StatelessWidget {
 
                   log("✅ User ID: $userId");
 
-                  final provider =
-                      Provider.of<RedemptionProvider>(context, listen: false);
-                  bool redeemed = await provider.redeemReward(
-                      userId, reward.id.toString()); // Redeem reward
+                  // Show confirmation dialog
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text("Confirm Redemption"),
+                        content:
+                            const Text("Check your points before you redeem."),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // Close the dialog
+                            },
+                            child: const Text("Cancel"),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.pop(
+                                  context); // Close the dialog before proceeding
 
-                  if (redeemed) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text("Reward redeemed successfully")),
-                    );
-                  }
+                              final provider = Provider.of<RedemptionProvider>(
+                                  context,
+                                  listen: false);
+                              bool redeemed = await provider.redeemReward(
+                                  userId, reward.id.toString());
+
+                              if (redeemed) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text("Reward redeemed successfully"),
+                                  ),
+                                );
+                              }
+                            },
+                            child: const Text("Redeem"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 },
                 child: const Text(
                   "Redeem",

@@ -4,10 +4,12 @@ class Attendance {
   final String? checkInTime;
   final String? checkOutTime;
   final String location;
+  final String image;
   final DateTime createdAt;
   final DateTime updatedAt;
 
   Attendance({
+    required this.image,
     this.id,
     this.salesmanId,
     this.checkOutTime,
@@ -19,6 +21,7 @@ class Attendance {
 
   factory Attendance.fromJson(Map<String, dynamic> json) {
     return Attendance(
+      image: json['image'],
       id: json['_id'] ?? '',
       checkOutTime: json['checkOutTime'] ?? '',
       salesmanId: json['salesman'] ?? '',

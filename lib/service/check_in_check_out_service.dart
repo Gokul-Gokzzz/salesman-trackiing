@@ -1,5 +1,4 @@
-import 'dart:developer';
-
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:salesman/model/attandence/check_in_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,7 +8,8 @@ class CheckInCheckOutService {
   final String baseUrl =
       "https://salesman-tracking-app.onrender.com/api/attendance";
 
-  Future<Attendance?> checkIn(String salesmanId, String location) async {
+  Future<Attendance?> checkIn(
+      String salesmanId, String location, File imageFile) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('auth_token');
@@ -18,16 +18,21 @@ class CheckInCheckOutService {
         throw Exception("No authentication token found.");
       }
 
+      // Prepare multipart request with image
+      FormData formData = FormData.fromMap({
+        "salesman": salesmanId,
+        "location": location,
+        "image": await MultipartFile.fromFile(imageFile.path,
+            filename: "checkin.jpg"),
+      });
+
       Response response = await _dio.post(
         '$baseUrl/check-in',
         options: Options(headers: {
           'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         }),
-        data: {
-          "salesman": salesmanId,
-          "location": location,
-        },
+        data: formData,
       );
 
       if (response.statusCode == 201) {
@@ -35,13 +40,11 @@ class CheckInCheckOutService {
         if (data == null) {
           throw Exception("Error: 'attendance' field is missing in response");
         }
-        Attendance attendance = Attendance.fromJson(data);
-        return attendance;
+        return Attendance.fromJson(data);
       } else {
         throw Exception("Failed to check-in: ${response.statusMessage}");
       }
     } catch (e) {
-      // log('"Error during check-in: $e"');
       throw Exception("Error during check-in: $e");
     }
   }

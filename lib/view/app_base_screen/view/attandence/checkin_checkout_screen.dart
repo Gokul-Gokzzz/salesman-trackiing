@@ -1,7 +1,9 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +28,8 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
   Attendance? _currentAttendance; // Store the current attendance record
   String? _lastCheckIn;
   String? _lastCheckOut;
+  File? _image;
+  final picker = ImagePicker();
 
   Future<String> _getLocation() async {
     bool serviceEnabled;
@@ -75,44 +79,124 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
   //     lastCheckIn = DateTime.now().toLocal().toString().split('.')[0];
   //   });
   // }
+  Future getImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      } else {
+        log('No image selected.');
+      }
+    });
+  }
 
   void _handleCheckIn() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? salesmanId = prefs.getString('id');
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  if (_image != null)
+                    Image.file(
+                      _image!,
+                      height: 150,
+                      width: 150,
+                      fit: BoxFit.cover,
+                    )
+                  else
+                    const Text('No image selected.'),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await getImage();
+                      setModalState(
+                          () {}); // Rebuild the modal to show the image
+                    },
+                    child: const Text('Take Photo'),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Close the bottom sheet
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: _image != null
+                            ? () async {
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                String? salesmanId = prefs.getString('id');
 
-    if (salesmanId == null || salesmanId.isEmpty) {
-      log("❌ Salesman ID is null or empty!");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Salesman ID not found")));
-      }
-      return;
-    }
+                                if (salesmanId == null || salesmanId.isEmpty) {
+                                  log("❌ Salesman ID is null or empty!");
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content:
+                                                Text("Salesman ID not found")));
+                                  }
+                                  return;
+                                }
 
-    log("✅ Salesman ID: $salesmanId");
-    String location = await _getLocation();
+                                log("✅ Salesman ID: $salesmanId");
+                                String location = await _getLocation();
 
-    _currentAttendance =
-        await _attendanceController.checkIn(salesmanId, location);
+                                _currentAttendance = await _attendanceController
+                                    .checkIn(salesmanId, location, _image!);
 
-    if (_currentAttendance != null && mounted) {
-      String? attandanceid = _currentAttendance?.id;
-      String? checkedinTime = _currentAttendance?.checkInTime;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('attandanceId',attandanceid! );
-      await prefs.setString('checkedintime',checkedinTime! );
-      String? saveCheckInTime = prefs.getString('checkedintime');
-      setState(() {
-        _lastCheckIn = saveCheckInTime;
-        _lastCheckOut = null; // Reset checkout time
-      });
-      await prefs.setString('checkedOutTime',"" );
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Checked in successfully")));
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Failed to check in")));
-    }
+                                if (_currentAttendance != null && mounted) {
+                                  String? attandanceid = _currentAttendance?.id;
+                                  String? checkedinTime =
+                                      _currentAttendance?.checkInTime;
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  await prefs.setString(
+                                      'attandanceId', attandanceid!);
+                                  await prefs.setString(
+                                      'checkedintime', checkedinTime!);
+                                  String? saveCheckInTime =
+                                      prefs.getString('checkedintime');
+                                  setState(() {
+                                    _lastCheckIn = saveCheckInTime;
+                                    _lastCheckOut = null;
+                                  });
+                                  await prefs.setString('checkedOutTime', "");
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                "Checked in successfully")));
+                                  }
+                                } else {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content:
+                                                Text("Failed to check in")));
+                                  }
+                                }
+                                Navigator.pop(
+                                    context); // Close the bottom sheet
+                              }
+                            : null,
+                        child: const Text('Check In'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _handleCheckOut() async {
@@ -133,9 +217,10 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
         await _attendanceController.checkOut(saveattandanceID.toString());
 
     if (checkedOut && mounted) {
-      String? checkedOutTime = DateTime.now().toLocal().toString().split('.')[0];
+      String? checkedOutTime =
+          DateTime.now().toLocal().toString().split('.')[0];
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('checkedOutTime',checkedOutTime! );
+      await prefs.setString('checkedOutTime', checkedOutTime!);
       String? savedCheckoutTime = prefs.getString('checkedOutTime');
       setState(() {
         _lastCheckOut = savedCheckoutTime;

@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:salesman/model/add_client_form_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddClientService {
   final Dio _dio = Dio();
@@ -9,20 +10,36 @@ class AddClientService {
       "https://salesman-tracking-app.onrender.com/api/client/";
 
   // In ClientService
-  Future<AddClintModel?> addClient(Map<String, dynamic> clientData) async {
+  Future<AddClient> addClient(AddClient client) async {
     try {
-      Response response = await _dio.post(baseUrl, data: clientData);
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        return AddClintModel.fromJson(response.data);
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('auth_token');
+
+      if (token == null || token.isEmpty) {
+        throw Exception("No authentication token found.");
       }
-      return null;
+
+      final response = await _dio.post(
+        baseUrl,
+        data: client.toJson(),
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 201) {
+        return AddClient.fromJson(response.data['client']);
+      } else {
+        throw Exception(
+            "Failed to add client: ${response.statusCode} - ${response.data}");
+      }
     } on DioException catch (e) {
-      log("Dio Error adding client: ${e.message}");
-      log("Dio Error Response add client form: ${e.response}"); // Log the response for more details
-      return null;
+      throw Exception("Dio error: ${e.message}");
     } catch (e) {
-      log("General Error adding client: $e");
-      return null;
+      throw Exception("Error adding client: $e");
     }
   }
 }

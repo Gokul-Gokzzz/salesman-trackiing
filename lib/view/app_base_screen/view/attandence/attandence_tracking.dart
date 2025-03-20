@@ -226,8 +226,8 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
                         _buildSummaryColumn("Check-in",
                             "${record.checkInTime!.day}-${record.checkInTime!.month}-${record.checkInTime!.year}, ${record.checkInTime!.hour}:${record.checkInTime!.minute}"),
 
-                        // _buildSummaryColumn("Check-out",
-                        // "${record.checkOutTime!.day}-${record.checkOutTime!.month}-${record.checkOutTime!.year}, ${record.checkOutTime!.hour}:${record.checkOutTime!.minute}"),
+                        _buildSummaryColumn("Check-out",
+                            "${record.checkOutTime?.day}-${record.checkOutTime?.month}-${record.checkOutTime?.year}, ${record.checkOutTime?.hour}:${record.checkOutTime?.minute}"),
 
                         // Add Check-out logic here if you have it in your data
                       ],

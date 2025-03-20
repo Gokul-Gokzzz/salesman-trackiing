@@ -7,14 +7,31 @@ class ClientService {
   final Dio _dio = Dio();
   final String baseUrl =
       "https://salesman-tracking-app.onrender.com/api/client";
-
   Future<List<ClientModel>> fetchClients(String salesmanId) async {
     try {
       final response = await _dio.get("$baseUrl/salesman/$salesmanId");
+      log("🔹 API Response: ${response.data}");
 
       if (response.statusCode == 200) {
-        final List clientsData = response.data['clients'];
-        return clientsData.map((json) => ClientModel.fromJson(json)).toList();
+        final data = response.data;
+
+        if (data != null && data is Map<String, dynamic>) {
+          final clientsData = data['clients'];
+
+          if (clientsData is List) {
+            return clientsData
+                .where((json) => json != null) // Ensure no null items
+                .map((json) =>
+                    ClientModel.fromJson(json as Map<String, dynamic>))
+                .toList();
+          } else {
+            log("❌ Clients data is null or not a list.");
+            return [];
+          }
+        } else {
+          log("❌ Response data is null or not a valid JSON object.");
+          return [];
+        }
       } else {
         log("❌ Failed to fetch clients: ${response.statusCode}");
         return [];

@@ -14,7 +14,7 @@ class ClientDetailsScreen extends StatefulWidget {
 }
 
 class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
-  Client? clientDetails;
+  AddClient? clientDetails;
   bool isLoading = true;
 
   @override
@@ -190,7 +190,12 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
             Text("Contact: ${client?.contact ?? 'N/A'}"),
             Text("Address: ${client?.address ?? 'N/A'}"),
             Text("Outstanding Due: ${client?.outstandingDue ?? 'N/A'}"),
-            Text("Orders Placed: ${client?.ordersPlaced ?? 'N/A'}"),
+            // Text("Orders Placed: ${client?.ordersPlaced ?? 'N/A'}"),
+            Text('Branches'),
+            if (client?.branches != null)
+              for (var branch in client!.branches)
+                Text(
+                    'Branch Name:${branch.branchName},Location:${branch.location}'),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -225,8 +230,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     final addressController = TextEditingController(text: client?.address);
     final dueController =
         TextEditingController(text: client?.outstandingDue.toString());
-    final ordersController =
-        TextEditingController(text: client?.ordersPlaced.toString());
+    // final ordersController =
+    //     TextEditingController(text: client?.ordersPlaced.toString());
 
     showModalBottomSheet(
       context: context,
@@ -281,11 +286,11 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                       const InputDecoration(labelText: "Outstanding Due"),
                   keyboardType: TextInputType.number,
                 ),
-                TextField(
-                  controller: ordersController,
-                  decoration: const InputDecoration(labelText: "Orders Placed"),
-                  keyboardType: TextInputType.number,
-                ),
+                // TextField(
+                //   controller: ordersController,
+                //   decoration: const InputDecoration(labelText: "Orders Placed"),
+                //   keyboardType: TextInputType.number,
+                // ),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -303,8 +308,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                           "address": addressController.text,
                           "outstandingDue":
                               int.tryParse(dueController.text) ?? 0,
-                          "ordersPlaced":
-                              int.tryParse(ordersController.text) ?? 0,
+                          // "ordersPlaced":
+                          //     int.tryParse(ordersController.text) ?? 0,
                         };
                         bool updated =
                             await provider.updateClient(client!.id, data);
