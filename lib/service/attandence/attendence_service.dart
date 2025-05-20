@@ -6,7 +6,8 @@ import 'package:salesman/model/attandence/check_in_model.dart';
 
 class AttendanceService {
   final Dio _dio = Dio();
-  final String baseUrl = "https://salesman-tracking-backend.onrender.com";
+  final String baseUrl =
+      "https://salesman-tracking-backend.onrender.com/api/attendance";
 
   Future<AttendenceModel?> fetchAttendance(String salesmanId) async {
     try {

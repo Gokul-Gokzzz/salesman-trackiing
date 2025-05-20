@@ -1,0 +1,2 @@
+D:/salesman/salesman/android/app/.cxx/RelWithDebInfo/m471z5l1/x86/CMakeFiles/edit_cache.dir
+D:/salesman/salesman/android/app/.cxx/RelWithDebInfo/m471z5l1/x86/CMakeFiles/rebuild_cache.dir

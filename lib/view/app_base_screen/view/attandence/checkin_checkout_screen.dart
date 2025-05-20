@@ -30,6 +30,21 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
   String? _lastCheckOut;
   File? _image;
   final picker = ImagePicker();
+  late SharedPreferences prefs; // Declare prefs as late
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences(); // Load preferences when the state is initialized
+  }
+
+  Future<void> _loadPreferences() async {
+    prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _lastCheckIn = prefs.getString('checkedintime');
+      _lastCheckOut = prefs.getString('checkedOutTime');
+    });
+  }
 
   Future<String> _getLocation() async {
     bool serviceEnabled;
@@ -60,30 +75,13 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
     return "${position.latitude}, ${position.longitude}";
   }
 
-  // void _handleCheckIn() async {
-  //   final authProvider = Provider.of<AuthProvider>(context, listen: false);
-  //   // String location = await _getLocation();
-  //   String? salesmanId =
-  //       authProvider.loginModel?.user?.id; // Replace with actual salesman ID
-  //   // if (salesmanId == null) {
-  //   //   log("❌ Salesman ID not found in AuthProvider!");
-  //   //   ScaffoldMessenger.of(context)
-  //   //       .showSnackBar(const SnackBar(content: Text("Salesman ID not found")));
-  //   //   return;
-  //   // }
-
-  //   // log("✅ Check-in initiated for Salesman ID: $salesmanId");
-  //   String location = await _getLocation();
-  //   await checkInController.handleCheckIn(context, salesmanId ?? '', location);
-  //   setState(() {
-  //     lastCheckIn = DateTime.now().toLocal().toString().split('.')[0];
-  //   });
-  // }
-  Future getImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+  Future getImage(ImageSource source) async {
+    final pickedFile = await picker.pickImage(source: source);
     setState(() {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
+        log("📷 Image picked from ${source == ImageSource.camera ? 'Camera' : 'Gallery'}: ${_image!.path}");
+        log("🖼️ Image type: ${pickedFile.mimeType ?? 'Unknown'}");
       } else {
         log('No image selected.');
       }
@@ -110,13 +108,26 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                     )
                   else
                     const Text('No image selected.'),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await getImage();
-                      setModalState(
-                          () {}); // Rebuild the modal to show the image
-                    },
-                    child: const Text('Take Photo'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          await getImage(ImageSource.camera);
+                          setModalState(
+                              () {}); // Rebuild the modal to show the image
+                        },
+                        child: const Text('Take Photo'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          await getImage(ImageSource.gallery);
+                          setModalState(
+                              () {}); // Rebuild the modal to show the image
+                        },
+                        child: const Text('Choose from Gallery'),
+                      ),
+                    ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -147,6 +158,15 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
 
                                 log("✅ Salesman ID: $salesmanId");
                                 String location = await _getLocation();
+                                log("📍 Location: $location");
+
+                                if (_image != null) {
+                                  log("📸 Image file path: ${_image!.path}");
+                                  // You can try to infer the image type from the extension or just log the path
+                                  log("🖼️ Image file extension: ${_image!.path.split('.').last}");
+                                } else {
+                                  log("⚠️ No image selected for check-in.");
+                                }
 
                                 _currentAttendance = await _attendanceController
                                     .checkIn(salesmanId, location, _image!);
@@ -155,6 +175,10 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                                   String? attandanceid = _currentAttendance?.id;
                                   String? checkedinTime =
                                       _currentAttendance?.checkInTime;
+                                  log("✅ Check-in successful!");
+                                  log("🆔 Attendance ID: $attandanceid");
+                                  log("⏰ Checked In Time: $checkedinTime");
+
                                   final prefs =
                                       await SharedPreferences.getInstance();
                                   await prefs.setString(
@@ -175,6 +199,7 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                                                 "Checked in successfully")));
                                   }
                                 } else {
+                                  log("❌ Check-in failed.");
                                   if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
@@ -219,6 +244,9 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
     if (checkedOut && mounted) {
       String? checkedOutTime =
           DateTime.now().toLocal().toString().split('.')[0];
+      log("✅ Check-out successful!");
+      log("⏰ Checked Out Time: $checkedOutTime");
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('checkedOutTime', checkedOutTime!);
       String? savedCheckoutTime = prefs.getString('checkedOutTime');
@@ -229,6 +257,7 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Checked out successfully")));
     } else {
+      log("❌ Check-out failed.");
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Failed to check out")));
     }
@@ -238,10 +267,6 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
   Widget build(BuildContext context) {
     final attendanceController =
         Provider.of<AttendanceController>(context, listen: false);
-    // final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    // final attProvider =
-    //     Provider.of<AttendanceController>(context, listen: false);
-    // attProvider.getAttendance();
     return Scaffold(
       backgroundColor: const Color(0xffF2F2F2),
       appBar: AppBar(
@@ -364,17 +389,7 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          // _currentAttendance?.checkInTime?.toString() ?? '',
-                          prefs.getString('checkedintime') ?? '',
-                          // (attProvider.lastCheckIn != "Not Available" &&
-                          //         attProvider.lastCheckIn
-                          //                 .trim()
-                          //                 .toLowerCase() !=
-                          //             "null")
-                          //     ? DateFormat('yyyy-MM-dd HH:mm:ss').format(
-                          //         DateTime.tryParse(attProvider.lastCheckIn) ??
-                          //             DateTime.now())
-                          //     : "Not Available",
+                          _lastCheckIn ?? 'N/A', // Display loaded check-in time
                           style: const TextStyle(
                               fontWeight: FontWeight.w400, fontSize: 13),
                         ),
@@ -391,21 +406,8 @@ class _CheckinCheckoutScreenState extends State<CheckinCheckoutScreen> {
                               color: Color(0XFF094497)),
                         ),
                         Text(
-                          // _currentAttendance?.checkOutTime?.toString() ?? '',
-                          prefs.getString('checkedOutTime') ?? '',
-                          // attProvider.lastCheckOut != "Not Available" ||
-                          //         attProvider.lastCheckOut
-                          //                 .trim()
-                          //                 .toLowerCase() ==
-                          //             "null".trim().toLowerCase()
-                          //     ? DateFormat('yyyy-MM-dd HH:mm:ss').format(
-                          //         DateTime.parse(attProvider.lastCheckOut
-                          //                     .trim()
-                          //                     .toLowerCase() ==
-                          //                 "null".trim().toLowerCase()
-                          //             ? DateTime.now().toIso8601String()
-                          //             : attProvider.lastCheckOut))
-                          //     : "Not Available",
+                          _lastCheckOut ??
+                              'N/A', // Display loaded check-out time
                           style: const TextStyle(
                               fontWeight: FontWeight.w400, fontSize: 15),
                         )
