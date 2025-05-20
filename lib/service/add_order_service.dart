@@ -5,7 +5,7 @@ import 'package:salesman/model/add_order_model.dart';
 class OrderService {
   final Dio _dio = Dio();
   final String _baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/order";
+      "https://salesman-tracking-backend.onrender.com/api/order";
   final Logger _logger = Logger();
 
   Future<String> createOrder(Order order) async {

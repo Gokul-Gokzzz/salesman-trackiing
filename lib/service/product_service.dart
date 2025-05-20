@@ -5,7 +5,7 @@ import '../model/product_model.dart';
 
 class ProductService {
   final String baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/products";
+      "https://salesman-tracking-backend.onrender.com/api/products";
   final Dio _dio = Dio();
 
   Future<List<Product>> fetchProducts() async {

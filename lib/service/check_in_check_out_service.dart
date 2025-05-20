@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class CheckInCheckOutService {
   final Dio _dio = Dio();
   final String baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/attendance";
+      "https://salesman-tracking-backend.onrender.com/api/attendance";
 
   Future<Attendance?> checkIn(
       String salesmanId, String location, File imageFile) async {

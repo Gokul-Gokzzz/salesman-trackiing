@@ -5,7 +5,7 @@ import 'package:salesman/model/collection_details_model.dart';
 class CollectionDetailsService {
   final Dio _dio = Dio();
   final String baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/collections/collection";
+      "https://salesman-tracking-backend.onrender.com/api/collections/collection";
 
   Future<Collection?> fetchCollectionDetails(String collectionId) async {
     try {
@@ -25,7 +25,7 @@ class CollectionDetailsService {
   Future<bool> editCollection(String id, Map<String, dynamic> data) async {
     try {
       final response = await _dio.put(
-          'https://salesman-tracking-app.onrender.com/api/collections/$id',
+          'https://salesman-tracking-backend.onrender.com/api/collections/$id',
           data: data);
       return response.statusCode == 200;
     } catch (e) {
@@ -37,7 +37,7 @@ class CollectionDetailsService {
   Future<bool> deleteCollection(String collectionId) async {
     try {
       final response = await _dio.delete(
-        "https://salesman-tracking-app.onrender.com/api/collections/$collectionId",
+        "https://salesman-tracking-backend.onrender.com/api/collections/$collectionId",
       );
 
       if (response.statusCode == 200) {

@@ -64,7 +64,7 @@ import 'package:salesman/model/note_model.dart';
 class NoteService {
   final Dio _dio = Dio();
   final String baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/notes/salesman/all";
+      "https://salesman-tracking-backend.onrender.com/api/notes/salesman/all";
 
   Future<List<GetNoteModel>> fetchNotes(String salesmanId) async {
     try {
@@ -95,7 +95,7 @@ class NoteService {
   Future<SingleNoteModel?> fetchSingleNote(String noteId) async {
     try {
       final response = await _dio.get(
-          'https://salesman-tracking-app.onrender.com/api/notes/getNote/$noteId');
+          'https://salesman-tracking-backend.onrender.com/api/notes/getNote/$noteId');
 
       if (response.statusCode == 200) {
         return SingleNoteModel.fromJson(response.data);
@@ -116,7 +116,7 @@ class NoteService {
   Future<bool> updateNote(String noteId, String title, String note) async {
     try {
       final response = await _dio.put(
-        'https://salesman-tracking-app.onrender.com/api/notes/$noteId',
+        'https://salesman-tracking-backend.onrender.com/api/notes/$noteId',
         data: {'title': title, 'note': note},
       );
       return response.statusCode == 200;
@@ -133,7 +133,7 @@ class NoteService {
   Future<bool> deleteNote(String noteId) async {
     try {
       final response = await _dio.delete(
-          'https://salesman-tracking-app.onrender.com/api/notes/$noteId');
+          'https://salesman-tracking-backend.onrender.com/api/notes/$noteId');
       return response.statusCode == 200;
     } on DioException catch (e) {
       log('Dio error deleting note: ${e.message}');

@@ -6,7 +6,7 @@ import 'package:salesman/model/notification_model.dart';
 class NotificationService {
   final Dio _dio = Dio();
   final String baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/notification/user";
+      "https://salesman-tracking-backend.onrender.com/api/notification/user";
 
   Future<List<NotificationModel>> fetchNotifications(String userId) async {
     try {
@@ -28,7 +28,7 @@ class NotificationService {
   Future<void> markAsRead(String notificationId) async {
     try {
       await _dio.put(
-          "https://salesman-tracking-app.onrender.com/api/notification/read/$notificationId");
+          "https://salesman-tracking-backend.onrender.com/api/notification/read/$notificationId");
     } catch (e) {
       log("Error marking as read: $e");
     }
@@ -38,7 +38,7 @@ class NotificationService {
   Future<void> deleteNotification(String notificationId) async {
     try {
       await _dio.delete(
-          "https://salesman-tracking-app.onrender.com/api/notification/$notificationId");
+          "https://salesman-tracking-backend.onrender.com/api/notification/$notificationId");
     } catch (e) {
       log("Error deleting notification: $e");
     }

@@ -5,7 +5,7 @@ import 'package:salesman/model/reward_model.dart';
 class RewardService {
   final Dio _dio = Dio();
   final String _baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/rewards";
+      "https://salesman-tracking-backend.onrender.com/api/rewards";
 
   Future<GetRewardModel?> fetchRewards() async {
     try {

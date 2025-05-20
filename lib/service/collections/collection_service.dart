@@ -6,7 +6,7 @@ import 'package:salesman/model/collection_model.dart';
 
 class CollectionService {
   final Dio _dio = Dio();
-  final String baseUrl = "https://salesman-tracking-app.onrender.com/api";
+  final String baseUrl = "https://salesman-tracking-backend.onrender.com/api";
 
   Future<List<GetCollection>> fetchCollections(String salesmanId) async {
     try {
@@ -27,7 +27,7 @@ class CollectionService {
   Future<bool> addCollection(Map<String, dynamic> collectionData) async {
     try {
       Response response = await _dio.post(
-        'https://salesman-tracking-app.onrender.com/api/collections',
+        'https://salesman-tracking-backend.onrender.com/api/collections',
         data: collectionData,
       );
 

@@ -8,7 +8,7 @@ class UserMetricsService {
   Future<UserMetricsModel?> fetchUserMetrics(String userId) async {
     try {
       String url =
-          "https://salesman-tracking-app.onrender.com/api/user/metrics/$userId";
+          "https://salesman-tracking-backend.onrender.com/api/user/metrics/$userId";
       Response response = await _dio.get(url);
 
       if (response.statusCode == 200) {

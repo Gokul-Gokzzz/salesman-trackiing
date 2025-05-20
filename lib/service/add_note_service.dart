@@ -6,7 +6,7 @@ import 'package:salesman/model/add_note_model.dart';
 class AddNoteService {
   final Dio _dio = Dio();
   final String _baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/notes";
+      "https://salesman-tracking-backend.onrender.com/api/notes";
 
   Future<bool> addNote(AddNoteModel noteModel) async {
     try {

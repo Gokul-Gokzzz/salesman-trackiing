@@ -6,7 +6,7 @@ class AddClient {
   final String email;
   final String contact;
   final String address;
-  // final int? ordersPlaced;
+  final int? ordersPlaced;
   final double outstandingDue;
   final List<Branch> branches;
   final DateTime? createdAt;
@@ -21,7 +21,7 @@ class AddClient {
     required this.email,
     required this.contact,
     required this.address,
-    // this.ordersPlaced,
+    this.ordersPlaced,
     required this.outstandingDue,
     required this.branches,
     this.createdAt,

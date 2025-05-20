@@ -4,7 +4,7 @@ import 'package:salesman/model/redem_request_model.dart';
 class RedemptionService {
   final Dio _dio = Dio();
   final String _baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/redeem";
+      "https://salesman-tracking-backend.onrender.com/api/redeem";
 
   Future<RedemptionRequestModel?> redeemReward(
       String userId, String rewardId) async {

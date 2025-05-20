@@ -7,7 +7,7 @@ import 'package:salesman/model/add_client_meeting_details_model.dart';
 class AddClientMeetingDetailsService {
   final Dio _dio = Dio();
   final String baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/meeting";
+      "https://salesman-tracking-backend.onrender.com/api/meeting";
 
   Future<AddClientMeetingDetailsModel?> createMeeting(
       AddMeeting meeting) async {

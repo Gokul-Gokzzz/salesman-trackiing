@@ -6,7 +6,7 @@ import 'package:salesman/model/order/order_sumery_model.dart';
 class OrderSummaryService {
   final Dio _dio = Dio();
   final String _baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/order/salesman";
+      "https://salesman-tracking-backend.onrender.com/api/order/salesman";
 
   Future<List<OrderSummary>> fetchOrders(String salesmanId) async {
     try {

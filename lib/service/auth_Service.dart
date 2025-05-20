@@ -104,7 +104,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: 'https://salesman-tracking-app.onrender.com/auth/user',
+      baseUrl: 'https://salesman-tracking-backend.onrender.com/auth/user',
       headers: {"Content-Type": "application/json"},
     ),
   );

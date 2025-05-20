@@ -5,7 +5,7 @@ import 'package:salesman/model/reward_history_mode.dart';
 class RewardHistoryService {
   final Dio _dio = Dio();
   final String baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/rewards/history/";
+      "https://salesman-tracking-backend.onrender.com/api/rewards/history/";
 
   Future<RewardHistoryModel?> fetchRewardHistory(String userId) async {
     try {

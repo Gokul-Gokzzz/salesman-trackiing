@@ -6,7 +6,7 @@ import 'package:salesman/model/client/get_client_model.dart';
 class ClientService {
   final Dio _dio = Dio();
   final String baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/client";
+      "https://salesman-tracking-backend.onrender.com/api/client";
   Future<List<ClientModel>> fetchClients(String salesmanId) async {
     try {
       final response = await _dio.get("$baseUrl/salesman/$salesmanId");

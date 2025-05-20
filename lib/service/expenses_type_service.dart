@@ -5,7 +5,7 @@ import 'package:salesman/model/order/expenses_type_model.dart';
 class ExpenseTypeService {
   final Dio _dio = Dio();
   final String _baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/expenseType/";
+      "https://salesman-tracking-backend.onrender.com/api/expenseType/";
 
   Future<ExpenseTypeModel?> fetchExpenses() async {
     try {

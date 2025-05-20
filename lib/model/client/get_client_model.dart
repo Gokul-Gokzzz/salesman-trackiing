@@ -7,7 +7,7 @@ class ClientModel {
   final String address;
   final List<Branch> branches;
   final int outstandingDue;
-  // final int ordersPlaced;
+  final int ordersPlaced;
 
   ClientModel({
     required this.id,
@@ -18,7 +18,7 @@ class ClientModel {
     required this.contact,
     required this.address,
     required this.outstandingDue,
-    // required this.ordersPlaced,
+    required this.ordersPlaced,
   });
 
   factory ClientModel.fromJson(Map<String, dynamic> json) {
@@ -34,7 +34,7 @@ class ClientModel {
           [],
       address: json['address'] ?? "",
       outstandingDue: json['outstandingDue'] ?? 0,
-      // ordersPlaced: json['ordersPlaced'] ?? 0,
+      ordersPlaced: json['ordersPlaced'] ?? 0,
     );
   }
 }

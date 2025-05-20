@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AddClientService {
   final Dio _dio = Dio();
   final String baseUrl =
-      "https://salesman-tracking-app.onrender.com/api/client/";
+      "https://salesman-tracking-backend.onrender.com/api/client/";
 
   // In ClientService
   Future<AddClient> addClient(AddClient client) async {
