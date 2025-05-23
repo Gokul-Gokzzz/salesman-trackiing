@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:salesman/controller/auth_conroller.dart';
+import 'package:provider/provider.dart';
+import 'package:salesman/controller/auth_conroller.dart'; // Assuming AuthProvider is here
 import 'package:salesman/view/app_base_screen/app_base_screen.dart';
 
 class RegisterForm extends StatefulWidget {
@@ -38,6 +39,15 @@ class _RegisterFormState extends State<RegisterForm> {
     super.dispose();
   }
 
+  // New method to clear all text fields
+  void _clearTextFields() {
+    _fullNameController.clear();
+    _mobileNumberController.clear();
+    _passwordController.clear();
+    _confirmPasswordController.clear();
+    _emailController.clear();
+  }
+
   void _handleSignUp() {
     String fullName = _fullNameController.text.trim();
     String email = _emailController.text.trim();
@@ -45,7 +55,11 @@ class _RegisterFormState extends State<RegisterForm> {
     String password = _passwordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
 
-    if (fullName.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+    if (fullName.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty ||
+        email.isEmpty ||
+        mobileNumber.isEmpty) {
       _showErrorDialog("All fields are required!");
       return;
     }
@@ -55,16 +69,24 @@ class _RegisterFormState extends State<RegisterForm> {
       return;
     }
 
-    // Show loading indicator
+    if (mobileNumber.length != 10 ||
+        !RegExp(r'^[0-9]+$').hasMatch(mobileNumber)) {
+      _showErrorDialog("Please enter a valid 10-digit mobile number!");
+      return;
+    }
+
+    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+      _showErrorDialog("Please enter a valid email address!");
+      return;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
-        return const Center(child: CircularProgressIndicator());
-      },
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
-    AuthProvider authController = AuthProvider();
+    final authController = Provider.of<AuthProvider>(context, listen: false);
     authController.registerUser(
       name: fullName,
       email: email,
@@ -72,9 +94,10 @@ class _RegisterFormState extends State<RegisterForm> {
       password: password,
       accountProvider: "local",
       callback: (success, message) {
-        Navigator.pop(context); // Remove loading indicator
+        Navigator.pop(context); // Remove loading
 
         if (success) {
+          _clearTextFields();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Registration successful!")),
           );
@@ -173,6 +196,11 @@ class _RegisterFormState extends State<RegisterForm> {
     return TextField(
       controller: controller,
       obscureText: obscureText,
+      keyboardType: hintText == "Mobile Number"
+          ? TextInputType.phone
+          : hintText == "Email"
+              ? TextInputType.emailAddress
+              : TextInputType.text, // Add keyboard type
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white,

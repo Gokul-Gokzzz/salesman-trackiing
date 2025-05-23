@@ -16,28 +16,46 @@ class ClientService {
         final data = response.data;
 
         if (data != null && data is Map<String, dynamic>) {
+          // Explicitly check if 'clients' key exists and is a List
           final clientsData = data['clients'];
 
           if (clientsData is List) {
+            // Ensure every item in the list is a Map<String, dynamic> before parsing
             return clientsData
-                .where((json) => json != null) // Ensure no null items
+                .where((json) => json != null && json is Map<String, dynamic>)
                 .map((json) =>
                     ClientModel.fromJson(json as Map<String, dynamic>))
                 .toList();
+          } else if (clientsData == null) {
+            log("⚠️ 'clients' key is null in the response. Returning empty list.");
+            return []; // Return an empty list if 'clients' is null
           } else {
-            log("❌ Clients data is null or not a list.");
-            return [];
+            log("❌ 'clients' data is not a List. Actual type: ${clientsData.runtimeType}");
+            return []; // Return an empty list if 'clients' is not a list
           }
         } else {
           log("❌ Response data is null or not a valid JSON object.");
           return [];
         }
       } else {
-        log("❌ Failed to fetch clients: ${response.statusCode}");
+        log("❌ Failed to fetch clients: ${response.statusCode}. Response: ${response.data}");
         return [];
       }
+    } on DioException catch (e) {
+      String errorMessage = "Network error or API issue.";
+      if (e.response != null) {
+        errorMessage =
+            "Error ${e.response!.statusCode}: ${e.response!.data?['message'] ?? e.response!.statusMessage}";
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = "Connection timed out. Please check your internet.";
+      } else {
+        errorMessage = e.message ?? errorMessage;
+      }
+      log("❌ Dio Error fetching clients: $errorMessage");
+      return [];
     } catch (e) {
-      log("❌ Error fetching clients: $e");
+      log("❌ Unexpected Error fetching clients: $e");
       return [];
     }
   }

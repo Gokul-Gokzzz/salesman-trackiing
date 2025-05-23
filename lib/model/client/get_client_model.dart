@@ -7,7 +7,7 @@ class ClientModel {
   final String address;
   final List<Branch> branches;
   final int outstandingDue;
-  final int ordersPlaced;
+  // final int ordersPlaced;
 
   ClientModel({
     required this.id,
@@ -18,23 +18,35 @@ class ClientModel {
     required this.contact,
     required this.address,
     required this.outstandingDue,
-    required this.ordersPlaced,
+    // required this.ordersPlaced,
   });
 
   factory ClientModel.fromJson(Map<String, dynamic> json) {
+    // Safely parse branches:
+    // 1. Check if 'branches' key exists and is a List.
+    // 2. If it is, map through it.
+    // 3. Otherwise, provide an empty list as default.
+    final List<dynamic>? branchesData = json['branches'];
+    final List<Branch> parsedBranches = branchesData != null &&
+            branchesData is List
+        ? branchesData
+            .where((branchJson) =>
+                branchJson != null && branchJson is Map<String, dynamic>)
+            .map((branchJson) =>
+                Branch.fromJson(branchJson as Map<String, dynamic>))
+            .toList()
+        : []; // Provide an empty list if branchesData is null or not a List
+
     return ClientModel(
       id: json['_id'] ?? "",
       name: json['name'] ?? "",
       companyName: json['companyName'] ?? "",
       email: json['email'] ?? "",
       contact: json['contact'] ?? "",
-      branches: (json['branches'] as List)
-              .map((branchJson) => Branch.fromJson(branchJson))
-              .toList() ??
-          [],
+      branches: parsedBranches, // Use the safely parsed list
       address: json['address'] ?? "",
       outstandingDue: json['outstandingDue'] ?? 0,
-      ordersPlaced: json['ordersPlaced'] ?? 0,
+      // ordersPlaced: json['ordersPlaced'] ?? 0,
     );
   }
 }

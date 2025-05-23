@@ -1,4 +1,5 @@
 class UserRegistrationModel {
+  // final String id;
   final String name;
   final String email;
   final int mobileNumber;
@@ -7,6 +8,7 @@ class UserRegistrationModel {
 
   UserRegistrationModel({
     required this.name,
+    // required this.id,
     required this.email,
     required this.mobileNumber,
     required this.password,
@@ -15,6 +17,7 @@ class UserRegistrationModel {
 
   Map<String, dynamic> toJson() {
     return {
+      // "id":id,
       "name": name,
       "email": email,
       "mobileNumber": mobileNumber,

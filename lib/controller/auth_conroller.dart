@@ -84,6 +84,32 @@ class AuthProvider extends ChangeNotifier {
     );
 
     final response = await _authService.registerUser(user);
+
+    if (response["success"] == true && response["data"] != null) {
+      final data = response["data"];
+
+      // Save the auth data
+      await AuthStorage.saveAuthData(
+        id: data["id"] ?? '',
+        token: data["token"] ?? '',
+        name: data["name"] ?? '',
+      );
+
+      // Update _loginModel
+      _loginModel = LoginModel(
+        token: data["token"] ?? '',
+        user: User(
+          id: data["id"] ?? '',
+          name: data["name"] ?? '',
+        ),
+      );
+
+      notifyListeners();
+      log('✅ Registration Successful and Auth Data Saved');
+    } else {
+      log('❌ Registration Failed');
+    }
+
     callback(response["success"], response["message"]);
   }
 }

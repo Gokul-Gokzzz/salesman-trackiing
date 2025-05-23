@@ -94,8 +94,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
       contact: contactController.text,
       address: addressController.text,
       outstandingDue: double.tryParse(outstandingDueController.text) ?? 0.0,
-      ordersPlaced:
-          int.tryParse(ordersPlacedController.text) ?? 0, //parse orders placed
+      // ordersPlaced:
+      //     int.tryParse(ordersPlacedController.text) ?? 0, //parse orders placed
       branches: branches, // Handle branches as needed (add branch logic)
     );
     log('Sending Client Data: ${client.toJson()}');
@@ -318,14 +318,14 @@ class _AddClientScreenState extends State<AddClientScreen> {
                             const SizedBox(
                               height: 10,
                             ),
-                            TextField(
-                              controller: ordersPlacedController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: "orderplaced",
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
+                            // TextField(
+                            //   controller: ordersPlacedController,
+                            //   keyboardType: TextInputType.number,
+                            //   decoration: const InputDecoration(
+                            //     labelText: "orderplaced",
+                            //     border: OutlineInputBorder(),
+                            //   ),
+                            // ),
                             SizedBox(
                               height: 10,
                             ),
